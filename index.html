@@ -5053,7 +5053,8 @@ async function loadGroupMessages(){
   const container=document.getElementById('chatGroupMessages');
   container.innerHTML='<div style="text-align:center;color:#666;font-size:0.8rem;padding:20px;">Loading messages...</div>';
   try{
-    const {data}=await supa.from('messages').select('*').eq('is_group',true).eq('group_name','general').order('created_at',{ascending:true}).limit(100);
+    const {data,error}=await supa.from('messages').select('*').eq('is_group',true).eq('group_name','general').order('created_at',{ascending:true}).limit(100);
+    if(error)throw error;
     renderGroupMessages(data||[]);
     // Subscribe to real-time
     if(chatRealtimeChannel)supa.removeChannel(chatRealtimeChannel);
@@ -5061,7 +5062,10 @@ async function loadGroupMessages(){
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'is_group=eq.true'},(payload)=>{
         appendGroupMessage(payload.new);
       }).subscribe();
-  }catch(e){container.innerHTML='<div style="color:var(--wrong);padding:20px;">Could not load messages.</div>';}
+  }catch(e){
+    console.error('loadGroupMessages error:',e);
+    container.innerHTML='<div style="color:var(--wrong);padding:20px;">Could not load messages: '+(e.message||JSON.stringify(e))+'</div>';
+  }
 }
 
 function renderGroupMessages(messages){
@@ -5095,16 +5099,18 @@ async function sendGroupMessage(){
   const text=input.value.trim();
   if(!text||!currentUser)return;
   input.value='';input.style.height='auto';
-  try{
-    await supa.from('messages').insert([{
-      sender_id:currentUser.id,
-      sender_name:currentUser.name,
-      content:text,
-      is_group:true,
-      group_name:'general',
-      read_by:[currentUser.id]
-    }]);
-  }catch(e){alert('Could not send message.');}
+  const {error}=await supa.from('messages').insert([{
+    sender_id:currentUser.id,
+    sender_name:currentUser.name,
+    content:text,
+    is_group:true,
+    group_name:'general',
+    read_by:[currentUser.id]
+  }]);
+  if(error){
+    console.error('sendGroupMessage error:',error);
+    alert('Could not send message: '+(error.message||JSON.stringify(error)));
+  }
 }
 
 // ============================================================
@@ -5114,7 +5120,8 @@ async function loadDMUsers(){
   const list=document.getElementById('dmUserList');
   list.innerHTML='<div style="color:#666;font-size:0.8rem;">Loading users...</div>';
   try{
-    const {data}=await supa.from('users').select('id,name,email').neq('id',currentUser?.id||'').order('name');
+    const {data,error}=await supa.from('users').select('id,name,email').neq('id',currentUser?.id||'').order('name');
+    if(error)throw error;
     list.innerHTML='';
     (data||[]).forEach(u=>{
       const initials=u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -5124,7 +5131,10 @@ async function loadDMUsers(){
       card.onclick=()=>openDM(u);
       list.appendChild(card);
     });
-  }catch(e){list.innerHTML='<div style="color:var(--wrong);">Could not load users.</div>';}
+  }catch(e){
+    console.error('loadDMUsers error:',e);
+    list.innerHTML='<div style="color:var(--wrong);">Could not load users: '+(e.message||JSON.stringify(e))+'</div>';
+  }
 }
 
 function openDM(user){
@@ -5138,10 +5148,11 @@ function openDM(user){
 async function loadDMMessages(user){
   const container=document.getElementById('dmConversation');
   try{
-    const {data}=await supa.from('messages')
+    const {data,error}=await supa.from('messages')
       .select('*').eq('is_group',false)
       .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${currentUser.id})`)
       .order('created_at',{ascending:true}).limit(100);
+    if(error)throw error;
     container.innerHTML='';
     if(!data||!data.length){
       container.innerHTML=`<div style="text-align:center;color:#666;font-size:0.8rem;padding:40px;">Start a conversation with ${user.name}! 💬</div>`;
@@ -5160,7 +5171,10 @@ async function loadDMMessages(user){
       container.appendChild(div);
     });
     container.scrollTop=container.scrollHeight;
-  }catch(e){container.innerHTML='<div style="color:var(--wrong);">Could not load messages.</div>';}
+  }catch(e){
+    console.error('loadDMMessages error:',e);
+    container.innerHTML='<div style="color:var(--wrong);">Could not load messages: '+(e.message||JSON.stringify(e))+'</div>';
+  }
 }
 
 async function sendDM(){
@@ -5169,17 +5183,20 @@ async function sendDM(){
   const text=input.value.trim();
   if(!text)return;
   input.value='';input.style.height='auto';
-  try{
-    await supa.from('messages').insert([{
-      sender_id:currentUser.id,
-      sender_name:currentUser.name,
-      receiver_id:currentDMUser.id,
-      receiver_name:currentDMUser.name,
-      content:text,
-      is_group:false
-    }]);
-    loadDMMessages(currentDMUser);
-  }catch(e){alert('Could not send message.');}
+  const {error}=await supa.from('messages').insert([{
+    sender_id:currentUser.id,
+    sender_name:currentUser.name,
+    receiver_id:currentDMUser.id,
+    receiver_name:currentDMUser.name,
+    content:text,
+    is_group:false
+  }]);
+  if(error){
+    console.error('sendDM error:',error);
+    alert('Could not send message: '+(error.message||JSON.stringify(error)));
+    return;
+  }
+  loadDMMessages(currentDMUser);
 }
 
 async function loadChatUsers(){
@@ -5214,14 +5231,19 @@ async function loadComments(topic){
   const body=document.getElementById('commentsBody');
   body.innerHTML='<div style="text-align:center;color:#666;padding:30px;">Loading...</div>';
   try{
-    const {data}=await supa.from('comments').select('*').eq('topic',topic).is('parent_id',null).order('created_at',{ascending:false}).limit(50);
+    const {data,error}=await supa.from('comments').select('*').eq('topic',topic).is('parent_id',null).order('created_at',{ascending:false}).limit(50);
+    if(error)throw error;
     if(!data||!data.length){body.innerHTML='<div style="text-align:center;color:#666;padding:30px;">No posts yet. Be the first!</div>';return;}
     body.innerHTML='';
     for(const c of data){
-      const {data:replies}=await supa.from('comments').select('*').eq('parent_id',c.id).order('created_at',{ascending:true});
+      const {data:replies,error:repErr}=await supa.from('comments').select('*').eq('parent_id',c.id).order('created_at',{ascending:true});
+      if(repErr)throw repErr;
       body.appendChild(buildCommentCard(c,replies||[]));
     }
-  }catch(e){body.innerHTML='<div style="color:var(--wrong);padding:20px;">Could not load discussions.</div>';}
+  }catch(e){
+    console.error('loadComments error:',e);
+    body.innerHTML='<div style="color:var(--wrong);padding:20px;">Could not load discussions: '+(e.message||JSON.stringify(e))+'</div>';
+  }
 }
 
 function buildCommentCard(c,replies){
@@ -5265,21 +5287,27 @@ async function postComment(){
   const text=input.value.trim();
   if(!text||!currentUser)return;
   if(text.length<3){alert('Comment is too short.');return;}
-  try{
-    await supa.from('comments').insert([{user_id:currentUser.id,user_name:currentUser.name,content:text,topic:currentCommentTopic,parent_id:null}]);
-    input.value='';
-    loadComments(currentCommentTopic);
-  }catch(e){alert('Could not post comment.');}
+  const {error}=await supa.from('comments').insert([{user_id:currentUser.id,user_name:currentUser.name,content:text,topic:currentCommentTopic,parent_id:null}]);
+  if(error){
+    console.error('postComment error:',error);
+    alert('Could not post comment: '+(error.message||JSON.stringify(error)));
+    return;
+  }
+  input.value='';
+  loadComments(currentCommentTopic);
 }
 
 async function postReply(parentId){
   const input=document.getElementById('replyInput_'+parentId);
   const text=input.value.trim();
   if(!text||!currentUser)return;
-  try{
-    await supa.from('comments').insert([{user_id:currentUser.id,user_name:currentUser.name,content:text,topic:currentCommentTopic,parent_id:parentId}]);
-    loadComments(currentCommentTopic);
-  }catch(e){alert('Could not post reply.');}
+  const {error}=await supa.from('comments').insert([{user_id:currentUser.id,user_name:currentUser.name,content:text,topic:currentCommentTopic,parent_id:parentId}]);
+  if(error){
+    console.error('postReply error:',error);
+    alert('Could not post reply: '+(error.message||JSON.stringify(error)));
+    return;
+  }
+  loadComments(currentCommentTopic);
 }
 
 async function likeComment(id,btn){
@@ -5374,7 +5402,9 @@ async function askAI(){
 
     typingDiv.innerHTML=`<div class="ai-bubble assistant"><div class="ai-label">🤖 AI Study Assistant</div><div>${reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')}</div></div>`;
   }catch(e){
-    typingDiv.innerHTML=`<div class="ai-bubble assistant"><div class="ai-label">🤖 AI Study Assistant</div><div style="color:var(--wrong);">❌ Could not connect. Check your internet and try again.</div></div>`;
+    console.error('askAI error:',e);
+    const msg=e?.message||e?.error?.message||(typeof e==='string'?e:JSON.stringify(e));
+    typingDiv.innerHTML=`<div class="ai-bubble assistant"><div class="ai-label">🤖 AI Study Assistant</div><div style="color:var(--wrong);">❌ Could not connect: ${msg||'unknown error'}. Check your internet and try again.</div></div>`;
   }
   msgs.scrollTop=msgs.scrollHeight;
   sendBtn.disabled=false;sendBtn.textContent='🚀';
