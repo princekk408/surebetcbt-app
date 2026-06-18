@@ -836,7 +836,7 @@ Ans: B"></textarea>
   <!-- DM Panel -->
   <div id="chatDMPanel" style="display:none;flex:1;flex-direction:column;">
     <div id="dmConversation" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;max-height:calc(100vh-200px);"></div>
-    <div id="dmInputRow" style="display:none;padding:10px;background:var(--card);border-top:1px solid #333;display:flex;gap:8px;align-items:flex-end;">
+    <div id="dmInputRow" style="display:none;padding:10px;background:var(--card);border-top:1px solid #333;gap:8px;align-items:flex-end;">
       <textarea id="chatDMInput" placeholder="Type a message..." style="flex:1;background:var(--input-bg);border:1px solid var(--input-border);color:var(--text);border-radius:12px;padding:10px;font-size:0.85rem;font-family:inherit;resize:none;max-height:100px;outline:none;" rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
       <button onclick="sendDM()" style="background:var(--gold);color:#000;border:none;border-radius:50%;width:40px;height:40px;font-size:1.1rem;cursor:pointer;flex-shrink:0;">➤</button>
     </div>
@@ -5038,10 +5038,14 @@ let currentChatTopic='group';
 let currentDMUser=null;
 
 function showChatTab(tab){
-  ['group','dm','users'].forEach(t=>{
-    document.getElementById('chatTab'+t.charAt(0).toUpperCase()+t.slice(1)).className='admin-tab'+(t===tab?' active':'');
-    document.getElementById('chat'+t.charAt(0).toUpperCase()+t.slice(1)+'Panel').style.display=t===tab?'flex':'none';
-  });
+  // Update tab highlights
+  document.getElementById('chatTabGroup').className='admin-tab'+(tab==='group'?' active':'');
+  document.getElementById('chatTabDM').className='admin-tab'+(tab==='dm'?' active':'');
+  document.getElementById('chatTabUsers').className='admin-tab'+(tab==='users'?' active':'');
+  // Show/hide panels
+  document.getElementById('chatGroupPanel').style.display=tab==='group'?'flex':'none';
+  document.getElementById('chatDMPanel').style.display=tab==='dm'?'flex':'none';
+  document.getElementById('chatUsersPanel').style.display=tab==='users'?'block':'none';
   currentChatTopic=tab;
   if(tab==='group') loadGroupMessages();
   if(tab==='dm'){loadDMUsers();if(currentDMUser)loadDMMessages(currentDMUser);}
@@ -5050,126 +5054,200 @@ function showChatTab(tab){
 
 async function loadGroupMessages(){
   const container=document.getElementById('chatGroupMessages');
-  container.innerHTML='<div style="text-align:center;color:#666;font-size:0.8rem;padding:20px;">Loading messages...</div>';
+  container.innerHTML='<div style="text-align:center;color:#666;font-size:0.8rem;padding:30px;">⏳ Loading messages...</div>';
   try{
-    const {data}=await supa.from('messages').select('*').eq('is_group',true).eq('group_name','general').order('created_at',{ascending:true}).limit(100);
+    const {data,error}=await supa.from('messages')
+      .select('*')
+      .eq('is_group',true)
+      .order('created_at',{ascending:true})
+      .limit(100);
+    if(error) throw error;
     renderGroupMessages(data||[]);
-    // Subscribe to real-time
-    if(chatRealtimeChannel)supa.removeChannel(chatRealtimeChannel);
-    chatRealtimeChannel=supa.channel('group-chat')
-      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'is_group=eq.true'},(payload)=>{
-        appendGroupMessage(payload.new);
+    // Real-time subscription
+    if(chatRealtimeChannel){
+      try{supa.removeChannel(chatRealtimeChannel);}catch(e){}
+    }
+    chatRealtimeChannel=supa.channel('group_chat_live')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},(payload)=>{
+        if(payload.new&&payload.new.is_group) appendGroupMessage(payload.new,true);
       }).subscribe();
-  }catch(e){container.innerHTML='<div style="color:var(--wrong);padding:20px;">Could not load messages.</div>';}
+  }catch(e){
+    console.error('Load group messages error:',e);
+    container.innerHTML='<div style="color:var(--wrong);padding:20px;text-align:center;">❌ Could not load messages.<br><span style="font-size:0.75rem;color:#888;">Make sure you ran the SQL query to create the messages table.</span></div>';
+  }
 }
 
 function renderGroupMessages(messages){
   const container=document.getElementById('chatGroupMessages');
-  if(!messages.length){container.innerHTML='<div style="text-align:center;color:#666;font-size:0.8rem;padding:40px;">No messages yet.<br>Be the first to say hello! 👋</div>';return;}
   container.innerHTML='';
+  if(!messages.length){
+    container.innerHTML='<div style="text-align:center;color:#666;font-size:0.85rem;padding:50px 20px;">No messages yet 💬<br><span style="font-size:0.75rem;">Be the first to say hello!</span></div>';
+    return;
+  }
   messages.forEach(m=>appendGroupMessage(m,false));
-  container.scrollTop=container.scrollHeight;
+  setTimeout(()=>{container.scrollTop=container.scrollHeight;},100);
 }
 
-function appendGroupMessage(m,scroll=true){
+function appendGroupMessage(m,scroll){
   const container=document.getElementById('chatGroupMessages');
-  const isMe=currentUser&&m.sender_name===currentUser.name;
-  const time=new Date(m.created_at).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
-  const initials=m.sender_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  if(!container||!m)return;
+  const isMe=currentUser&&(m.sender_name===currentUser.name||m.sender_id===currentUser.id);
+  const time=m.created_at?new Date(m.created_at).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}):'';
+  const name=(m.sender_name||'User');
+  const initials=name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'?';
+  const safeContent=(m.content||'').replace(/</g,'&lt;').replace(/\n/g,'<br>');
   const div=document.createElement('div');
   div.className='chat-row '+(isMe?'mine':'theirs');
-  div.innerHTML=(isMe?'':`<div style="display:flex;align-items:flex-end;gap:6px;"><div class="dm-avatar" style="width:28px;height:28px;font-size:0.65rem;">${initials}</div>`)
-    +`<div class="chat-bubble ${isMe?'mine':'theirs'}">
-      ${!isMe?`<div class="chat-name">${m.sender_name}</div>`:''}
-      <div>${m.content}</div>
-      <div class="chat-time">${time}</div>
-    </div>`
-    +(isMe?'':`</div>`);
+  div.style.marginBottom='6px';
+  if(isMe){
+    div.innerHTML='<div class="chat-bubble mine">'+safeContent+'<div class="chat-time">'+time+'</div></div>';
+  } else {
+    div.innerHTML='<div style="display:flex;align-items:flex-end;gap:6px;">'
+      +'<div class="dm-avatar" style="width:30px;height:30px;font-size:0.65rem;flex-shrink:0;">'+initials+'</div>'
+      +'<div class="chat-bubble theirs"><div class="chat-name">'+name+'</div>'+safeContent+'<div class="chat-time">'+time+'</div></div>'
+      +'</div>';
+  }
   container.appendChild(div);
-  if(scroll) container.scrollTop=container.scrollHeight;
+  if(scroll) setTimeout(()=>{container.scrollTop=container.scrollHeight;},50);
 }
 
 async function sendGroupMessage(){
+  if(!currentUser){alert('Please log in to send messages.');return;}
   const input=document.getElementById('chatGroupInput');
-  const text=input.value.trim();
-  if(!text||!currentUser)return;
-  input.value='';input.style.height='auto';
+  const text=(input.value||'').trim();
+  if(!text) return;
+  input.value='';
+  input.style.height='auto';
   try{
-    await supa.from('messages').insert([{
+    const {error}=await supa.from('messages').insert([{
       sender_id:currentUser.id,
       sender_name:currentUser.name,
       content:text,
       is_group:true,
-      group_name:'general',
-      read_by:[currentUser.id]
+      group_name:'general'
     }]);
-  }catch(e){alert('Could not send message.');}
+    if(error) throw error;
+    // Optimistically show own message immediately
+    appendGroupMessage({
+      sender_id:currentUser.id,
+      sender_name:currentUser.name,
+      content:text,
+      is_group:true,
+      created_at:new Date().toISOString()
+    },true);
+  }catch(e){
+    console.error('Send message error:',e);
+    alert('Could not send message. Error: '+(e.message||'Unknown'));
+  }
 }
 
 // ============================================================
 // DIRECT MESSAGES
 // ============================================================
 async function loadDMUsers(){
+  if(!currentUser) return;
   const list=document.getElementById('dmUserList');
+  const pick=document.getElementById('dmPickUser');
+  const conv=document.getElementById('dmConversation');
   list.innerHTML='<div style="color:#666;font-size:0.8rem;">Loading users...</div>';
+  if(!currentDMUser){
+    pick.style.display='block';
+    conv.style.display='none';
+    document.getElementById('dmInputRow').style.display='none';
+  }
   try{
-    const {data}=await supa.from('users').select('id,name,email').neq('id',currentUser?.id||'').order('name');
+    const {data,error}=await supa.from('users').select('id,name,email').neq('id',currentUser.id).order('name');
+    if(error) throw error;
     list.innerHTML='';
-    (data||[]).forEach(u=>{
-      const initials=u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const users=data||[];
+    if(!users.length){
+      list.innerHTML='<div style="color:#888;font-size:0.82rem;text-align:center;padding:20px;">No other users registered yet.</div>';
+      return;
+    }
+    users.forEach(u=>{
+      const initials=u.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
       const card=document.createElement('div');
       card.className='dm-user-card';
-      card.innerHTML=`<div class="dm-avatar">${initials}</div><div><div style="font-weight:700;font-size:0.85rem;">${u.name}</div><div style="font-size:0.7rem;color:#888;">${u.email}</div></div><div style="margin-left:auto;color:var(--gold);font-size:0.75rem;">Message →</div>`;
+      card.innerHTML='<div class="dm-avatar">'+initials+'</div>'
+        +'<div><div style="font-weight:700;font-size:0.85rem;">'+u.name+'</div>'
+        +'<div style="font-size:0.7rem;color:#888;">'+u.email+'</div></div>'
+        +'<div style="margin-left:auto;color:var(--gold);font-size:0.75rem;">Chat →</div>';
       card.onclick=()=>openDM(u);
       list.appendChild(card);
     });
-  }catch(e){list.innerHTML='<div style="color:var(--wrong);">Could not load users.</div>';}
+  }catch(e){
+    list.innerHTML='<div style="color:var(--wrong);font-size:0.8rem;">Could not load users.</div>';
+  }
 }
 
 function openDM(user){
   currentDMUser=user;
-  document.getElementById('dmPickUser').style.display='none';
-  document.getElementById('dmInputRow').style.display='flex';
-  document.getElementById('dmConversation').innerHTML='<div style="text-align:center;color:#666;font-size:0.8rem;padding:20px;">Loading...</div>';
+  const pick=document.getElementById('dmPickUser');
+  const conv=document.getElementById('dmConversation');
+  const inputRow=document.getElementById('dmInputRow');
+  pick.style.display='none';
+  conv.style.display='flex';
+  conv.style.flexDirection='column';
+  conv.style.flex='1';
+  conv.style.overflowY='auto';
+  conv.style.padding='12px';
+  conv.style.gap='8px';
+  inputRow.style.display='flex';
   loadDMMessages(user);
 }
 
 async function loadDMMessages(user){
+  if(!currentUser||!user) return;
   const container=document.getElementById('dmConversation');
+  container.innerHTML='<div style="text-align:center;color:#666;font-size:0.8rem;padding:20px;">Loading...</div>';
   try{
-    const {data}=await supa.from('messages')
-      .select('*').eq('is_group',false)
-      .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${currentUser.id})`)
-      .order('created_at',{ascending:true}).limit(100);
+    // Load messages between these two users
+    const {data,error}=await supa.from('messages')
+      .select('*')
+      .eq('is_group',false)
+      .or('and(sender_id.eq.'+currentUser.id+',receiver_id.eq.'+user.id+'),and(sender_id.eq.'+user.id+',receiver_id.eq.'+currentUser.id+')')
+      .order('created_at',{ascending:true})
+      .limit(100);
+    if(error) throw error;
     container.innerHTML='';
-    if(!data||!data.length){
-      container.innerHTML=`<div style="text-align:center;color:#666;font-size:0.8rem;padding:40px;">Start a conversation with ${user.name}! 💬</div>`;
+    const messages=data||[];
+    if(!messages.length){
+      container.innerHTML='<div style="text-align:center;color:#666;font-size:0.85rem;padding:40px 20px;">Start a conversation with <b>'+user.name+'</b>! 💬</div>';
       return;
     }
-    data.forEach(m=>{
+    messages.forEach(m=>{
       const isMe=m.sender_id===currentUser.id;
       const time=new Date(m.created_at).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+      const safeContent=(m.content||'').replace(/</g,'&lt;').replace(/\n/g,'<br>');
       const div=document.createElement('div');
       div.className='chat-row '+(isMe?'mine':'theirs');
-      div.innerHTML=`<div class="chat-bubble ${isMe?'mine':'theirs'}">
-        ${!isMe?`<div class="chat-name">${m.sender_name}</div>`:''}
-        <div>${m.content}</div>
-        <div class="chat-time">${time}</div>
-      </div>`;
+      div.style.marginBottom='6px';
+      if(isMe){
+        div.innerHTML='<div class="chat-bubble mine">'+safeContent+'<div class="chat-time">'+time+'</div></div>';
+      } else {
+        const initials=m.sender_name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+        div.innerHTML='<div style="display:flex;align-items:flex-end;gap:6px;">'
+          +'<div class="dm-avatar" style="width:30px;height:30px;font-size:0.65rem;flex-shrink:0;">'+initials+'</div>'
+          +'<div class="chat-bubble theirs"><div class="chat-name">'+m.sender_name+'</div>'+safeContent+'<div class="chat-time">'+time+'</div></div>'
+          +'</div>';
+      }
       container.appendChild(div);
     });
-    container.scrollTop=container.scrollHeight;
-  }catch(e){container.innerHTML='<div style="color:var(--wrong);">Could not load messages.</div>';}
+    setTimeout(()=>{container.scrollTop=container.scrollHeight;},100);
+  }catch(e){
+    container.innerHTML='<div style="color:var(--wrong);padding:20px;text-align:center;">Could not load messages.</div>';
+  }
 }
 
 async function sendDM(){
-  if(!currentDMUser||!currentUser)return;
+  if(!currentUser||!currentDMUser){alert('Please select a user first.');return;}
   const input=document.getElementById('chatDMInput');
-  const text=input.value.trim();
-  if(!text)return;
-  input.value='';input.style.height='auto';
+  const text=(input.value||'').trim();
+  if(!text) return;
+  input.value='';
+  input.style.height='auto';
   try{
-    await supa.from('messages').insert([{
+    const {error}=await supa.from('messages').insert([{
       sender_id:currentUser.id,
       sender_name:currentUser.name,
       receiver_id:currentDMUser.id,
@@ -5177,50 +5255,78 @@ async function sendDM(){
       content:text,
       is_group:false
     }]);
+    if(error) throw error;
     loadDMMessages(currentDMUser);
-  }catch(e){alert('Could not send message.');}
+  }catch(e){
+    alert('Could not send message: '+(e.message||'Unknown error'));
+  }
 }
 
 async function loadChatUsers(){
+  if(!currentUser) return;
   const list=document.getElementById('chatUsersList');
-  list.innerHTML='<div style="color:#666;font-size:0.8rem;">Loading...</div>';
+  list.innerHTML='<div style="color:#666;font-size:0.8rem;">Loading users...</div>';
   try{
-    const {data}=await supa.from('users').select('id,name,email,created_at').order('name');
-    list.innerHTML='<div style="color:var(--gold);font-size:0.75rem;font-weight:700;margin-bottom:12px;text-transform:uppercase;">👥 All Users ('+( data?.length||0)+')</div>';
-    (data||[]).forEach(u=>{
-      const initials=u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const {data,error}=await supa.from('users').select('id,name,email,created_at').order('name');
+    if(error) throw error;
+    const users=data||[];
+    list.innerHTML='<div style="color:var(--gold);font-size:0.75rem;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">👥 '+users.length+' Registered Users</div>';
+    users.forEach(u=>{
+      const initials=u.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
       const dt=new Date(u.created_at).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});
-      list.innerHTML+=`<div class="dm-user-card" onclick="showChatTab('dm');openDM({id:'${u.id}',name:'${u.name}',email:'${u.email}'})">
-        <div class="dm-avatar">${initials}</div>
-        <div><div style="font-weight:700;font-size:0.85rem;">${u.name}</div><div style="font-size:0.68rem;color:#888;">Joined ${dt}</div></div>
-        <div style="margin-left:auto;color:var(--gold);font-size:0.75rem;">Chat →</div>
-      </div>`;
+      const isMe=u.id===currentUser.id;
+      const card=document.createElement('div');
+      card.className='dm-user-card';
+      card.innerHTML='<div class="dm-avatar" style="'+(isMe?'background:linear-gradient(135deg,var(--gold),#ff6b6b);':'')+'">'+initials+'</div>'
+        +'<div><div style="font-weight:700;font-size:0.85rem;color:'+(isMe?'var(--gold)':'var(--white)')+';">'+u.name+(isMe?' (You)':'')+'</div>'
+        +'<div style="font-size:0.68rem;color:#888;">Joined '+dt+'</div></div>'
+        +(isMe?'':'<div style="margin-left:auto;color:var(--gold);font-size:0.75rem;">Message →</div>');
+      if(!isMe) card.onclick=()=>{showChatTab('dm');openDM(u);};
+      list.appendChild(card);
     });
-  }catch(e){list.innerHTML='<div style="color:var(--wrong);">Could not load users.</div>';}
+  }catch(e){
+    list.innerHTML='<div style="color:var(--wrong);">Could not load users.</div>';
+  }
 }
 
 // ============================================================
 // COMMENTS / DISCUSSION BOARD
 // ============================================================
-let currentCommentTopic='general';
-let replyingTo=null;
-
 async function loadComments(topic){
   currentCommentTopic=topic;
-  document.querySelectorAll('#commentsScreen .lb-tab-btn').forEach(b=>{
-    b.className='lb-tab-btn'+(b.getAttribute('onclick')?.includes("'"+topic+"'")?' active':'');
+  // Update tab highlights
+  document.querySelectorAll('#commentsScreen .lb-tab-btn').forEach(btn=>{
+    const onclick=btn.getAttribute('onclick')||'';
+    btn.className='lb-tab-btn'+(onclick.includes("'"+topic+"'")?' active':'');
   });
   const body=document.getElementById('commentsBody');
-  body.innerHTML='<div style="text-align:center;color:#666;padding:30px;">Loading...</div>';
+  body.innerHTML='<div style="text-align:center;color:#666;padding:30px;">⏳ Loading discussions...</div>';
   try{
-    const {data}=await supa.from('comments').select('*').eq('topic',topic).is('parent_id',null).order('created_at',{ascending:false}).limit(50);
-    if(!data||!data.length){body.innerHTML='<div style="text-align:center;color:#666;padding:30px;">No posts yet. Be the first!</div>';return;}
+    const {data,error}=await supa.from('comments')
+      .select('*')
+      .eq('topic',topic)
+      .is('parent_id',null)
+      .order('created_at',{ascending:false})
+      .limit(30);
+    if(error) throw error;
+    const comments=data||[];
+    if(!comments.length){
+      body.innerHTML='<div style="text-align:center;color:#666;padding:40px;font-size:0.85rem;">No posts yet in this topic.<br>Be the first to post! ✍️</div>';
+      return;
+    }
     body.innerHTML='';
-    for(const c of data){
-      const {data:replies}=await supa.from('comments').select('*').eq('parent_id',c.id).order('created_at',{ascending:true});
+    // Load replies for each comment
+    for(const c of comments){
+      const {data:replies}=await supa.from('comments')
+        .select('*')
+        .eq('parent_id',c.id)
+        .order('created_at',{ascending:true});
       body.appendChild(buildCommentCard(c,replies||[]));
     }
-  }catch(e){body.innerHTML='<div style="color:var(--wrong);padding:20px;">Could not load discussions.</div>';}
+  }catch(e){
+    console.error('Load comments error:',e);
+    body.innerHTML='<div style="color:var(--wrong);padding:20px;text-align:center;">❌ Could not load discussions.<br><span style="font-size:0.75rem;color:#888;">Make sure the comments table was created in Supabase.</span></div>';
+  }
 }
 
 function buildCommentCard(c,replies){
