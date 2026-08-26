@@ -178,6 +178,12 @@
   .option.selected{border-color:var(--accent);background:rgba(47,95,224,.06);font-weight:600;}
   .option input{width:auto;margin:0;}
 
+  .qnav-grid{display:flex;flex-wrap:wrap;gap:8px;}
+  .qchip{width:38px;height:38px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;}
+  .qchip:hover{border-color:var(--accent);}
+  .qchip.answered{background:var(--success-bg);border-color:var(--success);color:var(--success);}
+  .qchip.current{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,95,224,.15);}
+
   /* ---------- admin ---------- */
   .subject-box .top{margin-bottom:10px;}
   .qedit{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border);}
@@ -510,6 +516,7 @@ async function startQuiz() {
   S.answers = {};
   S.leaveCount = 0;
   S.submitted = false;
+  S.currentIndex = 0;
   S.startedAt = Date.now();
   renderQuiz();
   startTimer();
@@ -517,57 +524,97 @@ async function startQuiz() {
 }
 
 function renderQuiz() {
-  let h = `
+  const h = `
     <div class="quiz-header">
       <div class="flex">
         <span class="pill">100 marks &middot; 20 questions</span>
-        <span class="pill" id="progress">0/20 answered</span>
+        <span class="pill" id="progress">${Object.keys(S.answers).length}/${S.questions.length} answered</span>
       </div>
       <div id="timer" class="timer">10:00</div>
     </div>
     <div id="cheatWarn"></div>
-  `;
-  S.questions.forEach((x, i) => {
-    h += `
-      <div class="qcard" id="qcard${i}">
-        <div class="qmeta">
-          <span class="qnum-label">Question ${i+1} of 20</span>
-          <span class="tag">${esc(subjectLabel(x.subject))} &middot; ${x.marks} marks</span>
-        </div>
-        <div class="qtext">${esc(x.question)}</div>
-    `;
-    (x.options || []).forEach((o, j) => {
-      h += `
-        <label class="option">
-          <input type="radio" name="q${i}" onchange="choose(${i},${j},this)"> ${esc(o)}
-        </label>
-      `;
-    });
-    h += `</div>`;
-  });
-  h += `
+    <div id="qArea"></div>
+    <div class="card">
+      <div class="flex" style="justify-content:space-between">
+        <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">Previous</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next</button>
+      </div>
+    </div>
+    <div class="card">
+      <p class="muted" style="margin-bottom:10px">Jump to any question:</p>
+      <div class="qnav-grid" id="qnavGrid"></div>
+    </div>
     <div class="card center">
       <p class="muted" style="margin-bottom:12px">Review your answers before submitting — you only get one attempt per day.</p>
       <button class="btn btn-primary" onclick="submitClick()">Submit quiz</button>
     </div>
   `;
   studentShell(h);
+  renderCurrentQuestion();
+  renderQuizNav();
 }
 
-function choose(i, j, el) {
+function renderCurrentQuestion() {
+  const i = S.currentIndex;
+  const x = S.questions[i];
+  const area = $('qArea');
+  if (!area || !x) return;
+  let h = `
+    <div class="qcard ${S.answers[i] !== undefined ? 'answered' : ''}" id="qcard${i}">
+      <div class="qmeta">
+        <span class="qnum-label">Question ${i+1} of ${S.questions.length}</span>
+        <span class="tag">${esc(subjectLabel(x.subject))} &middot; ${x.marks} marks</span>
+      </div>
+      <div class="qtext">${esc(x.question)}</div>
+  `;
+  (x.options || []).forEach((o, j) => {
+    const sel = S.answers[i] === j;
+    h += `
+      <label class="option ${sel ? 'selected' : ''}">
+        <input type="radio" name="q${i}" ${sel ? 'checked' : ''} onchange="choose(${i},${j})"> ${esc(o)}
+      </label>
+    `;
+  });
+  h += `</div>`;
+  area.innerHTML = h;
+  const prevBtn = $('prevBtn');
+  const nextBtn = $('nextBtn');
+  if (prevBtn) prevBtn.disabled = i === 0;
+  if (nextBtn) nextBtn.disabled = i === S.questions.length - 1;
+}
+
+function renderQuizNav() {
+  const grid = $('qnavGrid');
+  if (!grid) return;
+  grid.innerHTML = S.questions.map((x, i) => `
+    <div class="qchip ${S.answers[i] !== undefined ? 'answered' : ''} ${i === S.currentIndex ? 'current' : ''}" onclick="goToQuestion(${i})">${i+1}</div>
+  `).join('');
+}
+
+function goToQuestion(i) {
+  S.currentIndex = i;
+  renderCurrentQuestion();
+  renderQuizNav();
+}
+
+function nextQuestion() {
+  if (S.currentIndex < S.questions.length - 1) goToQuestion(S.currentIndex + 1);
+}
+
+function prevQuestion() {
+  if (S.currentIndex > 0) goToQuestion(S.currentIndex - 1);
+}
+
+function choose(i, j) {
   S.answers[i] = j;
-  const card = $(`qcard${i}`);
-  if (card) {
-    card.classList.add('answered');
-    card.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-    if (el) el.closest('.option').classList.add('selected');
-  }
   updateProgress();
+  renderCurrentQuestion();
+  renderQuizNav();
 }
 
 function updateProgress() {
   const el = $('progress');
-  if (el) el.textContent = `${Object.keys(S.answers).length}/20 answered`;
+  if (el) el.textContent = `${Object.keys(S.answers).length}/${S.questions.length} answered`;
 }
 
 function submitClick() {
