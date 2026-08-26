@@ -1,108 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daily Quiz Challenge</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: #f4f7f5;
-      color: #17251d;
-      padding: 20px;
-    }
-    .app { max-width: 1050px; margin: auto; }
-    .card {
-      background: #fff;
-      border: 1px solid #d8e2dc;
-      border-radius: 20px;
-      padding: 22px;
-      box-shadow: 0 8px 28px rgba(18, 56, 29, 0.06);
-      margin: 14px 0;
-    }
-    .brand { font-weight: 900; color: #12633a; }
-    .muted { color: #69766f; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 15px; }
-    input, select, textarea {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #cbd7d0;
-      border-radius: 11px;
-      margin: 6px 0 13px;
-      background: #fff;
-    }
-    textarea { min-height: 100px; resize: vertical; }
-    .btn {
-      border: 0;
-      border-radius: 11px;
-      padding: 12px 17px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    .btn-primary { background: #12633a; color: #fff; }
-    .btn-primary:hover { background: #0e4d2d; }
-    .btn-secondary { background: #e9f3ed; color: #17251d; }
-    .btn-secondary:hover { background: #d4e2db; }
-    .btn-danger { background: #fee4e2; color: #9c2118; }
-    .center { text-align: center; }
-    .hidden { display: none !important; }
-    .msg {
-      padding: 12px;
-      border-radius: 10px;
-      margin-top: 12px;
-      background: #fff4e5;
-      color: #8a4b00;
-    }
-    .success { background: #eaf8f0; color: #12633a; }
-    .top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .pill {
-      display: inline-block;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: #e9f3ed;
-      font-weight: 800;
-    }
-    .timer { font-size: 25px; font-weight: 900; color: #b42318; }
-    .qcard {
-      border: 1px solid #d8e2dc;
-      border-radius: 15px;
-      padding: 17px;
-      margin: 13px 0;
-    }
-    .option {
-      display: block;
-      padding: 12px;
-      border: 1px solid #d8e2dc;
-      border-radius: 10px;
-      margin: 8px 0;
-      cursor: pointer;
-    }
-    .option:hover { background: #f7faf8; }
-    table { width: 100%; border-collapse: collapse; overflow: hidden; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6ece8; }
-    th { background: #f4f8f5; }
-    .tabs { display: flex; gap: 7px; flex-wrap: wrap; margin: 14px 0; }
-    .tabs button {
-      background: #edf3ef;
-      border: 0;
-      padding: 9px 12px;
-      border-radius: 9px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .badge { font-size: 12px; font-weight: 900; padding: 5px 8px; border-radius: 999px; }
-    .flag { background: #ffe7e5; color: #a51f17; }
-    .ok { background: #e9f7ef; color: #17643d; }
-    .subject-box { border: 1px solid #d8e2dc; border-radius: 15px; padding: 15px; margin: 12px 0; }
-    .nav-bar { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid #d8e2dc; padding-bottom: 10px; }
-    .nav-bar .btn { background: transparent; color: #12633a; border: 1px solid #12633a; }
-    .nav-bar .btn:hover { background: #12633a; color: white; }
-    .flex { display: flex; gap: 10px; flex-wrap: wrap; }
-    .text-center { text-align: center; }
-    @media (max-width:600px){ .container { padding:15px; } }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Quiz Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#f3f4f7;
+    --surface:#ffffff;
+    --surface-2:#f8f9fb;
+    --border:#e2e5eb;
+    --ink:#161b26;
+    --muted:#68707e;
+    --primary:#1c2540;
+    --primary-2:#252f52;
+    --accent:#2f5fe0;
+    --accent-ink:#1a3fb0;
+    --success:#0f8a4b;
+    --success-bg:#e7f6ee;
+    --danger:#c0362c;
+    --danger-bg:#fbeaea;
+    --warn:#92610c;
+    --warn-bg:#fdf1de;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 10px 30px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{letter-spacing:-0.01em;}
+  h2{font-size:20px;font-weight:700;}
+  h3{font-size:15px;font-weight:700;}
+  p{line-height:1.5;}
+  .muted{color:var(--muted);font-size:13.5px;}
+  a{color:var(--accent);}
+
+  /* ---------- shared layout ---------- */
+  .content{max-width:1080px;margin:0 auto;padding:24px;}
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:var(--shadow-sm);
+    margin:16px 0;
+  }
+  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
+  .top:last-child{margin-bottom:0;}
+  .center{text-align:center;}
+  .hidden{display:none!important;}
+  .flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+
+  input,select,textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:14px;
+    padding:11px 13px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    margin:6px 0 14px;
+    background:var(--surface);
+    color:var(--ink);
+    transition:border-color .15s;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,95,224,.12);}
+  textarea{min-height:80px;resize:vertical;}
+  label{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+
+  .btn{
+    border:0;
+    border-radius:var(--radius-sm);
+    padding:11px 18px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    font-family:inherit;
+    transition:background .15s,border-color .15s,opacity .15s;
+  }
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-2);}
+  .btn-secondary{background:var(--surface-2);color:var(--ink);border:1px solid var(--border);}
+  .btn-secondary:hover{background:#eef0f4;}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);}
+  .btn-danger:hover{opacity:.85;}
+  .btn-link{background:transparent;color:var(--accent);padding:8px 0;width:100%;text-align:center;}
+  .btn-link:hover{text-decoration:underline;}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;}
+  .btn-ghost:hover{background:rgba(255,255,255,.1);}
+
+  .banner{padding:12px 14px;border-radius:var(--radius-sm);margin-top:10px;font-size:13.5px;font-weight:600;}
+  .banner.warn{background:var(--warn-bg);color:var(--warn);}
+  .banner.error{background:var(--danger-bg);color:var(--danger);}
+  .banner.success{background:var(--success-bg);color:var(--success);}
+
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 12px;border-radius:999px;
+    background:var(--surface-2);border:1px solid var(--border);
+    font-weight:600;font-size:12.5px;color:var(--ink);
+  }
+  .badge{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
+  .badge.flag{background:var(--danger-bg);color:var(--danger);}
+  .badge.ok{background:var(--success-bg);color:var(--success);}
+  .badge.pending{background:var(--warn-bg);color:var(--warn);}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border);}
+  th{background:var(--surface-2);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
+  tbody tr:hover{background:var(--surface-2);}
+  .rank{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:12px;}
+  .rank-1{background:#c79a2b;}
+  .rank-2{background:#9aa5b4;}
+  .rank-3{background:#a9713f;}
+
+  /* ---------- top bars ---------- */
+  .topbar{background:var(--primary);color:#fff;padding:16px 24px;}
+  .topbar-inner{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .brand-row{display:flex;align-items:center;gap:10px;}
+  .logo-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;letter-spacing:.02em;}
+  .brand-text .name{font-weight:800;font-size:15px;letter-spacing:.01em;}
+  .brand-text .who{font-size:12px;color:#aab2c8;}
+  .topbar .pill{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#fff;}
+
+  .subnav{background:var(--surface);border-bottom:1px solid var(--border);}
+  .subnav-inner{max-width:1080px;margin:0 auto;display:flex;gap:2px;padding:0 24px;flex-wrap:wrap;}
+  .subnav button{background:transparent;border:0;padding:14px 14px;font-weight:600;font-size:13.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;}
+  .subnav button:hover{color:var(--ink);}
+
+  /* ---------- auth screens ---------- */
+  .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .auth-card{
+    width:100%;max-width:880px;
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    box-shadow:var(--shadow-md);
+    display:grid;grid-template-columns:1fr 1fr;overflow:hidden;
+  }
+  .auth-card.single{grid-template-columns:1fr;max-width:440px;}
+  .auth-side{background:var(--primary);color:#fff;padding:38px 34px;display:flex;flex-direction:column;justify-content:space-between;}
+  .auth-side-top .logo-mark{margin-bottom:18px;}
+  .auth-side h1{font-size:22px;font-weight:800;margin-bottom:10px;}
+  .auth-side p{color:#b7bfd4;font-size:13.5px;}
+  .auth-points{margin-top:24px;list-style:none;display:flex;flex-direction:column;gap:12px;}
+  .auth-points li{font-size:13px;color:#dbe0ee;padding-left:18px;position:relative;}
+  .auth-points li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .auth-form{padding:38px 34px;}
+  .auth-form h2{margin-bottom:4px;}
+  @media (max-width:680px){ .auth-card{grid-template-columns:1fr;} .auth-side{display:none;} }
+
+  /* ---------- quiz taking ---------- */
+  .quiz-header{position:sticky;top:0;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;box-shadow:var(--shadow-sm);flex-wrap:wrap;gap:10px;}
+  .timer{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);}
+  .timer.danger{color:var(--danger);}
+  .qcard{border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:12px 0;border-left:3px solid var(--border);transition:border-color .15s;}
+  .qcard.answered{border-left-color:var(--success);}
+  .qcard .qmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+  .qcard .qnum-label{font-weight:700;font-size:13.5px;}
+  .qcard .tag{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;}
+  .qcard .qtext{margin:8px 0 12px;font-size:15px;font-weight:500;}
+  .option{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    margin:7px 0;cursor:pointer;font-size:14px;
+  }
+  .option:hover{border-color:var(--accent);background:var(--surface-2);}
+  .option.selected{border-color:var(--accent);background:rgba(47,95,224,.06);font-weight:600;}
+  .option input{width:auto;margin:0;}
+
+  /* ---------- admin ---------- */
+  .subject-box .top{margin-bottom:10px;}
+  .qedit{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border);}
+  .qedit:last-of-type{border-bottom:0;}
+  .qnum{flex:0 0 32px;height:32px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);font-size:13px;}
+  .qfields{flex:1;min-width:0;}
+  .qfields textarea{min-height:56px;}
+  .qrow{display:flex;gap:10px;}
+  .qrow input{flex:1;}
+  .good{color:var(--success);}
+  .bad{color:var(--danger);}
+  .quiz-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .quiz-chip{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:10px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:120px;font-family:inherit;}
+  .quiz-chip:hover{border-color:var(--accent);}
+  .quiz-chip .d{font-weight:700;font-size:13.5px;}
+  .quiz-chip small{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;}
+  .quiz-chip.is-today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+  .quiz-chip.is-past{opacity:.65;}
+
+  @media (max-width:600px){ .content{padding:16px;} .auth-form,.auth-side{padding:26px 22px;} }
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -111,7 +207,7 @@
 'use strict';
 
 /* ============================================================
-   SUPABASE CONFIG – EXTRACTED FROM THE ORIGINAL APP
+   SUPABASE CONFIG
    ============================================================ */
 const SUPABASE_URL = 'https://ucerqmewibwkxdgtgqvc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZXJxbWV3aWJ3a3hkZ3RncXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MzM1NDMsImV4cCI6MjA5NzEwOTU0M30.4wB1N229r__yCZo5unB1WVsnMf_Erk_p8aT1MySTgCU';
@@ -128,8 +224,12 @@ const sha256 = async text => {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 };
+function subjectLabel(s) {
+  return { maths:'Mathematics', english:'English', general_knowledge:'General Knowledge', science:'Science', commercial:'Commercial', art:'Art' }[s] || s;
+}
 const sessionKey = 'daily_quiz_session';
 let S = { user: null, quiz: null, questions: [], answers: {}, startedAt: 0, timer: null, leaveCount: 0, submitted: false };
+let FP = { user: null };
 
 function saveSession(x) { localStorage.setItem(sessionKey, JSON.stringify(x)); }
 function loadSession() { try { return JSON.parse(localStorage.getItem(sessionKey) || 'null'); } catch { return null; } }
@@ -141,28 +241,34 @@ function show(html) { document.getElementById('app').innerHTML = html; }
    ============================================================ */
 function loginScreen(message = '') {
   show(`
-    <div class="app">
-      <div class="card" style="max-width:560px;margin:8vh auto">
-        <div class="center">
-          <h1 class="brand">DAILY QUIZ CHALLENGE</h1>
-          <p class="muted">Daily competitive quiz • 12:00 PM – 6:00 PM</p>
-        </div>
-        <div class="grid">
-          <div>
-            <label>Username</label>
-            <input id="loginUser" autocomplete="username">
-            <label>Password</label>
-            <input id="loginPass" type="password" autocomplete="current-password">
-            <button class="btn btn-primary" style="width:100%" onclick="login()">Log in</button>
-            <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="forgotPassword()">Forgot password?</button>
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-side">
+          <div class="auth-side-top">
+            <div class="logo-mark">DQ</div>
+            <h1>Daily Quiz Challenge</h1>
+            <p>A timed, competitive daily quiz for Science, Commercial and Art students.</p>
           </div>
-          <div>
-            <h3>New participant?</h3>
-            <p class="muted">Create your account with a username, password, stream and security question.</p>
-            <button class="btn btn-secondary" onclick="signupScreen()">Create account</button>
-          </div>
+          <ul class="auth-points">
+            <li>New quiz opens daily at <b>12:00&nbsp;PM</b>, closes at <b>6:00&nbsp;PM</b></li>
+            <li>20 questions &middot; 10 minutes &middot; 100 marks</li>
+            <li>Leaderboard revealed at <b>6:30&nbsp;PM</b></li>
+          </ul>
         </div>
-        ${message ? `<div class="msg">${message}</div>` : ''}
+        <div class="auth-form">
+          <h2>Sign in</h2>
+          <p class="muted">Enter your username and password to continue.</p>
+          <label>Username</label>
+          <input id="loginUser" autocomplete="username">
+          <label>Password</label>
+          <input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+          <button class="btn btn-primary" style="width:100%" onclick="login()">Sign in</button>
+          <button class="btn btn-link" onclick="forgotPasswordScreen()">Forgot password?</button>
+          ${message ? `<div class="banner warn">${message}</div>` : ''}
+          <div class="divider"></div>
+          <p class="muted center">New participant?</p>
+          <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="signupScreen()">Create an account</button>
+        </div>
       </div>
     </div>
   `);
@@ -170,23 +276,25 @@ function loginScreen(message = '') {
 
 function signupScreen(message = '') {
   show(`
-    <div class="app">
-      <div class="card" style="max-width:600px;margin:5vh auto">
-        <h2>Create account</h2>
-        <p class="muted">Choose your stream carefully. It controls the final 5 questions.</p>
-        <label>Username</label><input id="suUser">
-        <label>Password</label><input id="suPass" type="password">
-        <label>Stream</label>
-        <select id="suStream">
-          <option value="science">Science</option>
-          <option value="commercial">Commercial</option>
-          <option value="art">Art</option>
-        </select>
-        <label>Security question</label><input id="suQuestion" placeholder="e.g. What is your favourite colour?">
-        <label>Security answer</label><input id="suAnswer">
-        <button class="btn btn-primary" onclick="signup()">Create account</button>
-        <button class="btn btn-secondary" onclick="loginScreen()">Back to login</button>
-        ${message ? `<div class="msg">${message}</div>` : ''}
+    <div class="auth-wrap">
+      <div class="auth-card single">
+        <div class="auth-form">
+          <h2>Create your account</h2>
+          <p class="muted">Choose your stream carefully — it determines your final 5 questions.</p>
+          <label>Username</label><input id="suUser">
+          <label>Password</label><input id="suPass" type="password">
+          <label>Stream</label>
+          <select id="suStream">
+            <option value="science">Science</option>
+            <option value="commercial">Commercial</option>
+            <option value="art">Art</option>
+          </select>
+          <label>Security question</label><input id="suQuestion" placeholder="e.g. What is your favourite colour?">
+          <label>Security answer</label><input id="suAnswer">
+          <button class="btn btn-primary" style="width:100%" onclick="signup()">Create account</button>
+          <button class="btn btn-link" onclick="loginScreen()">Back to sign in</button>
+          ${message ? `<div class="banner ${/success/i.test(message) ? 'success' : 'warn'}">${message}</div>` : ''}
+        </div>
       </div>
     </div>
   `);
@@ -194,11 +302,11 @@ function signupScreen(message = '') {
 
 async function signup() {
   try {
-    const username = document.getElementById('suUser').value.trim();
-    const password = document.getElementById('suPass').value;
-    const stream = document.getElementById('suStream').value;
-    const q = document.getElementById('suQuestion').value.trim();
-    const a = document.getElementById('suAnswer').value.trim();
+    const username = $('suUser').value.trim();
+    const password = $('suPass').value;
+    const stream = $('suStream').value;
+    const q = $('suQuestion').value.trim();
+    const a = $('suAnswer').value.trim();
     if (!username || !password || !q || !a) throw new Error('Please complete every field.');
 
     const { data: existing, error: e1 } = await sb.from('dq_users').select('id').eq('username', username).maybeSingle();
@@ -213,7 +321,7 @@ async function signup() {
       security_answer_hash: await sha256(a.toLowerCase())
     });
     if (error) throw error;
-    loginScreen('Account created successfully. You can now log in.');
+    loginScreen('Account created successfully. You can now sign in.');
   } catch (e) {
     signupScreen(esc(e.message));
   }
@@ -221,9 +329,8 @@ async function signup() {
 
 async function login() {
   try {
-    const u = document.getElementById('loginUser').value.trim();
-    const p = document.getElementById('loginPass').value;
-    // Admin hardcoded
+    const u = $('loginUser').value.trim();
+    const p = $('loginPass').value;
     if (u === 'Ogonor Prince Bright' && p === '09068491316') {
       saveSession({ admin: true, username: u });
       return adminHome();
@@ -238,22 +345,56 @@ async function login() {
   }
 }
 
-async function forgotPassword() {
-  const username = prompt('Enter your username:');
+function forgotPasswordScreen(message = '') {
+  FP = { user: null };
+  show(`
+    <div class="auth-wrap">
+      <div class="auth-card single">
+        <div class="auth-form">
+          <h2>Reset password</h2>
+          <p class="muted">Enter your username to retrieve your security question.</p>
+          <label>Username</label>
+          <input id="fpUser" autocomplete="username">
+          <button class="btn btn-secondary" style="width:100%" onclick="fpFindUser()">Find account</button>
+          <div id="fpStep2"></div>
+          ${message ? `<div class="banner error">${message}</div>` : ''}
+          <button class="btn btn-link" onclick="loginScreen()">Back to sign in</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+async function fpFindUser() {
+  const username = $('fpUser').value.trim();
+  const step2 = $('fpStep2');
   if (!username) return;
-  try {
-    const { data: u, error } = await sb.from('dq_users').select('*').eq('username', username.trim()).maybeSingle();
-    if (error) throw error;
-    if (!u) throw new Error('Username not found.');
-    const answer = prompt(u.security_question);
-    if (answer === null) return;
-    if (await sha256(answer.trim().toLowerCase()) !== u.security_answer_hash) throw new Error('Incorrect security answer.');
-    const np = prompt('Enter your new password:');
-    if (!np) return;
-    const { error: e } = await sb.from('dq_users').update({ password_hash: await sha256(np) }).eq('id', u.id);
-    if (e) throw e;
-    alert('Password changed successfully.');
-  } catch (e) { alert(e.message); }
+  const { data: u, error } = await sb.from('dq_users').select('*').eq('username', username).maybeSingle();
+  if (error || !u) { step2.innerHTML = `<div class="banner error">Username not found.</div>`; return; }
+  FP.user = u;
+  step2.innerHTML = `
+    <div class="divider"></div>
+    <label>${esc(u.security_question)}</label>
+    <input id="fpAnswer" placeholder="Your answer">
+    <label>New password</label>
+    <input id="fpNewPass" type="password" placeholder="New password">
+    <button class="btn btn-primary" style="width:100%" onclick="fpReset()">Reset password</button>
+    <div id="fpMsg"></div>
+  `;
+}
+
+async function fpReset() {
+  const answer = $('fpAnswer').value.trim();
+  const np = $('fpNewPass').value;
+  const msgEl = $('fpMsg');
+  if (!answer || !np) return;
+  if (await sha256(answer.toLowerCase()) !== FP.user.security_answer_hash) {
+    msgEl.innerHTML = `<div class="banner error">Incorrect answer.</div>`;
+    return;
+  }
+  const { error } = await sb.from('dq_users').update({ password_hash: await sha256(np) }).eq('id', FP.user.id);
+  if (error) { msgEl.innerHTML = `<div class="banner error">${esc(error.message)}</div>`; return; }
+  loginScreen('Password updated successfully. You can sign in now.');
 }
 
 function logout() {
@@ -282,9 +423,14 @@ async function studentHome() {
   S.user = ses;
 
   const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
-  if (error) return studentShell(`<div class="msg">${esc(error.message)}</div>`);
+  if (error) return studentShell(`<div class="banner error">${esc(error.message)}</div>`);
   S.quiz = quiz;
-  if (!quiz) return studentShell('<div class="msg">No quiz has been scheduled for today.</div>');
+  if (!quiz) return studentShell(`
+    <div class="card center">
+      <h2>No quiz today</h2>
+      <p class="muted" style="margin-top:6px">Nothing has been scheduled for today yet. Check back later.</p>
+    </div>
+  `);
 
   const { data: attempt } = await sb.from('dq_attempts').select('*').eq('user_id', ses.id).eq('quiz_id', quiz.id).maybeSingle();
   const st = quizStatus();
@@ -292,24 +438,24 @@ async function studentHome() {
   if (attempt) {
     if (st === 'reveal') return leaderboardPage();
     return studentShell(`
-      <div class="card">
-        <div class="success">✅ You have successfully completed this quiz.<br>Check your score and leaderboard at <b>6:30 PM</b>.</div>
+      <div class="card center">
+        <div class="banner success" style="display:inline-block">You have successfully completed this quiz.</div>
+        <p class="muted" style="margin-top:10px">Check your score and the leaderboard at <b>6:30 PM</b>.</p>
       </div>
     `);
   }
 
   if (st === 'before') return studentShell(`
     <div class="card center">
-      <h2>Today’s quiz</h2>
-      <p>The quiz opens at exactly <b>12:00 PM</b>.</p>
+      <h2>Today's quiz opens soon</h2>
+      <p class="muted" style="margin-top:6px">The quiz opens at exactly <b>12:00 PM</b> and stays open until <b>6:00 PM</b>.</p>
     </div>
   `);
 
   if (st === 'closed') return studentShell(`
     <div class="card center">
-      <h2>Quiz closed</h2>
-      <p>The attempt window closed at <b>6:00 PM</b>.</p>
-      <p>Leaderboard will be revealed at <b>6:30 PM</b>.</p>
+      <h2>Quiz window closed</h2>
+      <p class="muted" style="margin-top:6px">The attempt window closed at <b>6:00 PM</b>.<br>The leaderboard will be revealed at <b>6:30 PM</b>.</p>
     </div>
   `);
 
@@ -319,21 +465,26 @@ async function studentHome() {
 
 function studentShell(body) {
   show(`
-    <div class="app">
-      <div class="top">
-        <div>
-          <h2 class="brand">DAILY QUIZ CHALLENGE</h2>
-          <span class="pill">${esc(S.user.username)} • ${esc(S.user.stream.toUpperCase())}</span>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-row">
+          <div class="logo-mark">DQ</div>
+          <div class="brand-text">
+            <div class="name">Daily Quiz Challenge</div>
+            <div class="who">${esc(S.user.username)} &middot; ${esc(subjectLabel(S.user.stream))}</div>
+          </div>
         </div>
-        <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        <button class="btn btn-ghost" onclick="logout()">Log out</button>
       </div>
-      <div class="nav-bar">
-        <button class="btn" onclick="studentHome()">Dashboard</button>
-        <button class="btn" onclick="leaderboardPage()">Leaderboard</button>
-        <button class="btn" onclick="pastQuizzes()">Past Quizzes</button>
-      </div>
-      ${body}
     </div>
+    <div class="subnav">
+      <div class="subnav-inner">
+        <button onclick="studentHome()">Dashboard</button>
+        <button onclick="leaderboardPage()">Leaderboard</button>
+        <button onclick="pastQuizzes()">Past Quizzes</button>
+      </div>
+    </div>
+    <div class="content">${body}</div>
   `);
 }
 
@@ -343,11 +494,11 @@ function studentShell(body) {
 async function startQuiz() {
   const common = await sb.from('dq_questions').select('*').eq('quiz_id', S.quiz.id).in('subject', ['maths','english','general_knowledge']);
   const special = await sb.from('dq_questions').select('*').eq('quiz_id', S.quiz.id).eq('subject', S.user.stream);
-  if (common.error || special.error) return studentShell('<div class="msg">Could not load today’s questions.</div>');
+  if (common.error || special.error) return studentShell('<div class="banner error">Could not load today\'s questions.</div>');
 
   S.questions = [...common.data, ...special.data].sort(() => Math.random() - 0.5);
   if (S.questions.length !== 20) {
-    return studentShell(`<div class="msg">Today’s quiz is not ready. It needs exactly 20 questions for your stream; currently ${S.questions.length} are available.</div>`);
+    return studentShell(`<div class="banner warn">Today's quiz is not ready yet. It needs exactly 20 questions for your stream; currently ${S.questions.length} are available.</div>`);
   }
 
   S.answers = {};
@@ -361,24 +512,28 @@ async function startQuiz() {
 
 function renderQuiz() {
   let h = `
-    <div class="card">
-      <div class="top">
-        <span class="pill">20 Questions • 100 Marks</span>
-        <span id="timer" class="timer">10:00</span>
+    <div class="quiz-header">
+      <div class="flex">
+        <span class="pill">100 marks &middot; 20 questions</span>
+        <span class="pill" id="progress">0/20 answered</span>
       </div>
-      <div id="cheatWarn"></div>
+      <div id="timer" class="timer">10:00</div>
     </div>
+    <div id="cheatWarn"></div>
   `;
   S.questions.forEach((x, i) => {
     h += `
-      <div class="qcard">
-        <div><b>Q${i+1}.</b> ${esc(x.question)}</div>
-        <small class="muted">${esc(x.subject)} • ${x.marks} marks</small>
+      <div class="qcard" id="qcard${i}">
+        <div class="qmeta">
+          <span class="qnum-label">Question ${i+1} of 20</span>
+          <span class="tag">${esc(subjectLabel(x.subject))} &middot; ${x.marks} marks</span>
+        </div>
+        <div class="qtext">${esc(x.question)}</div>
     `;
     (x.options || []).forEach((o, j) => {
       h += `
         <label class="option">
-          <input type="radio" name="q${i}" onchange="choose(${i},${j})"> ${esc(o)}
+          <input type="radio" name="q${i}" onchange="choose(${i},${j},this)"> ${esc(o)}
         </label>
       `;
     });
@@ -386,20 +541,44 @@ function renderQuiz() {
   });
   h += `
     <div class="card center">
-      <button class="btn btn-primary" onclick="submitQuiz(false,false)">Submit quiz</button>
+      <p class="muted" style="margin-bottom:12px">Review your answers before submitting — you only get one attempt per day.</p>
+      <button class="btn btn-primary" onclick="submitClick()">Submit quiz</button>
     </div>
   `;
   studentShell(h);
 }
 
-function choose(i, j) { S.answers[i] = j; }
+function choose(i, j, el) {
+  S.answers[i] = j;
+  const card = $(`qcard${i}`);
+  if (card) {
+    card.classList.add('answered');
+    card.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    if (el) el.closest('.option').classList.add('selected');
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const el = $('progress');
+  if (el) el.textContent = `${Object.keys(S.answers).length}/20 answered`;
+}
+
+function submitClick() {
+  const unanswered = 20 - Object.keys(S.answers).length;
+  if (unanswered > 0 && !confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+  submitQuiz(false, false);
+}
 
 function startTimer() {
   clearInterval(S.timer);
   S.timer = setInterval(() => {
     const left = Math.max(0, 600 - Math.floor((Date.now() - S.startedAt) / 1000));
-    const timerEl = document.getElementById('timer');
-    if (timerEl) timerEl.textContent = Math.floor(left/60) + ':' + String(left%60).padStart(2,'0');
+    const timerEl = $('timer');
+    if (timerEl) {
+      timerEl.textContent = Math.floor(left/60) + ':' + String(left%60).padStart(2,'0');
+      timerEl.classList.toggle('danger', left <= 60);
+    }
     if (left === 0) submitQuiz(true, false);
   }, 250);
 }
@@ -415,8 +594,8 @@ function removeAntiCheat() {
 function violation() {
   if (S.submitted) return;
   S.leaveCount++;
-  const warn = document.getElementById('cheatWarn');
-  if (warn) warn.innerHTML = `<div class="msg">⚠️ Anti-cheat warning ${S.leaveCount}/5: you left the quiz tab. Return immediately.</div>`;
+  const warn = $('cheatWarn');
+  if (warn) warn.innerHTML = `<div class="banner error">Anti-cheat warning ${S.leaveCount}/5 — you left the quiz tab. Return immediately or your quiz will be auto-submitted and flagged.</div>`;
   if (S.leaveCount >= 5) submitQuiz(true, true);
 }
 function visibilityHandler() { if (document.hidden && S.questions.length && !S.submitted) violation(); }
@@ -453,15 +632,15 @@ async function submitQuiz(auto, flag) {
   const { error } = await sb.from('dq_attempts').insert(payload);
   if (error) {
     S.submitted = false;
-    alert(error.message);
+    studentShell(`<div class="banner error">${esc(error.message)}</div>`);
     return;
   }
   studentShell(`
     <div class="card center">
       <h2>Quiz completed</h2>
-      <div class="success">✅ You have successfully completed this quiz.</div>
-      <p>Your score is hidden until <b>6:30 PM</b>.</p>
-      ${flag ? '<p class="msg">⚠️ Your attempt has been flagged for leaving the quiz.</p>' : ''}
+      <div class="banner success" style="display:inline-block;margin-top:10px">You have successfully completed this quiz.</div>
+      <p class="muted" style="margin-top:10px">Your score is hidden until <b>6:30 PM</b>. Check the Leaderboard tab then.</p>
+      ${flag ? '<div class="banner error" style="margin-top:10px">Your attempt has been flagged for leaving the quiz tab too many times.</div>' : ''}
     </div>
   `);
 }
@@ -471,23 +650,21 @@ async function submitQuiz(auto, flag) {
    ============================================================ */
 async function leaderboardPage() {
   const { data: rows, error } = await sb.from('dq_attempts').select('*, dq_users(username, stream)').eq('quiz_id', S.quiz.id);
-  if (error) return studentShell('<div class="msg">'+esc(error.message)+'</div>');
+  if (error) return studentShell('<div class="banner error">'+esc(error.message)+'</div>');
+
+  const tabs = ['overall','science','commercial','art','maths','english','gk','stream'];
+  const tabLabels = { overall:'Overall', science:'Science', commercial:'Commercial', art:'Art', maths:'Mathematics', english:'English', gk:'General Knowledge', stream:'Stream Subject' };
 
   let body = `
     <div class="card">
-      <h2>🏆 Leaderboards</h2>
-      <p class="muted">${esc(S.quiz.quiz_date)} • Results revealed at 6:30 PM</p>
-      <div class="tabs">
-        <button onclick="renderLB('overall')">Overall</button>
-        <button onclick="renderLB('science')">Science</button>
-        <button onclick="renderLB('commercial')">Commercial</button>
-        <button onclick="renderLB('art')">Art</button>
-        <button onclick="renderLB('maths')">Mathematics</button>
-        <button onclick="renderLB('english')">English</button>
-        <button onclick="renderLB('gk')">General Knowledge</button>
-        <button onclick="renderLB('stream')">Stream Subject</button>
+      <div class="top">
+        <h2>Leaderboards</h2>
+        <span class="muted">${esc(S.quiz.quiz_date)} &middot; revealed at 6:30 PM</span>
       </div>
-      <div id="lbArea"></div>
+      <div class="flex" id="lbTabs">
+        ${tabs.map(t => `<button class="btn btn-secondary" onclick="renderLB('${t}')">${tabLabels[t]}</button>`).join('')}
+      </div>
+      <div id="lbArea" style="margin-top:14px"></div>
     </div>
   `;
   studentShell(body);
@@ -510,27 +687,27 @@ function renderLB(mode) {
   }
   arr.sort((a,b) => (scoreFor(b,mode) - scoreFor(a,mode)) || (Number(a.elapsed_seconds) - Number(b.elapsed_seconds)));
   const max = (mode === 'overall') ? 100 : 25;
-  const area = document.getElementById('lbArea');
+  const area = $('lbArea');
   if (!area) return;
+  const title = mode==='overall' ? 'Overall Leaderboard' : mode==='stream' ? 'Stream Subject Leaderboard' : subjectLabel(mode) + ' Leaderboard';
   area.innerHTML = `
-    <h3>${mode==='overall' ? 'Overall Leaderboard' :
-            mode==='stream' ? 'Stream Subject Leaderboard' :
-            mode[0].toUpperCase() + mode.slice(1) + ' Leaderboard'}</h3>
+    <h3 style="margin-bottom:10px">${title}</h3>
+    ${!arr.length ? '<p class="muted">No attempts to show.</p>' : `
     <div style="overflow:auto">
       <table>
         <tr><th>Rank</th><th>Participant</th><th>Stream</th><th>Score</th><th>Time</th><th>Status</th></tr>
         ${arr.map((r,i) => `
           <tr>
-            <td>${i+1}</td>
+            <td>${i<3 ? `<span class="rank rank-${i+1}">${i+1}</span>` : i+1}</td>
             <td>${esc(r.dq_users?.username)}</td>
-            <td>${esc(r.dq_users?.stream)}</td>
+            <td>${esc(subjectLabel(r.dq_users?.stream))}</td>
             <td><b>${scoreFor(r,mode)}/${max}</b>${mode==='overall' ? ` (${scoreFor(r,mode)}%)` : ''}</td>
             <td>${Math.floor(r.elapsed_seconds/60)}:${String(r.elapsed_seconds%60).padStart(2,'0')}</td>
-            <td>${r.flagged_cheating ? '<span class="badge flag">⚠️ FLAGGED</span>' : '<span class="badge ok">CLEAR</span>'}</td>
+            <td>${r.flagged_cheating ? '<span class="badge flag">Flagged</span>' : '<span class="badge ok">Clear</span>'}</td>
           </tr>
         `).join('')}
       </table>
-    </div>
+    </div>`}
   `;
 }
 
@@ -539,14 +716,14 @@ function renderLB(mode) {
    ============================================================ */
 async function pastQuizzes() {
   const { data, error } = await sb.from('dq_quizzes').select('id, quiz_date').lt('quiz_date', today()).order('quiz_date', { ascending: false });
-  if (error) return studentShell('<div class="msg">Error loading past quizzes.</div>');
-  if (!data || data.length === 0) return studentShell('<div class="card"><p>No past quizzes yet.</p></div>');
+  if (error) return studentShell('<div class="banner error">Error loading past quizzes.</div>');
+  if (!data || data.length === 0) return studentShell('<div class="card"><h2>Past Quizzes</h2><p class="muted" style="margin-top:6px">No past quizzes yet.</p></div>');
 
-  let body = `<div class="card"><h2>Past Quizzes</h2><ul>`;
+  let body = `<div class="card"><h2>Past Quizzes</h2><div class="quiz-list" style="margin-top:12px">`;
   for (const q of data) {
-    body += `<li><a href="#" onclick="viewPastQuiz('${q.id}')">${q.quiz_date}</a></li>`;
+    body += `<button class="quiz-chip" onclick="viewPastQuiz('${q.id}')"><span class="d">${q.quiz_date}</span></button>`;
   }
-  body += `</ul><div id="pastDetail"></div></div>`;
+  body += `</div><div id="pastDetail"></div></div>`;
   studentShell(body);
 }
 
@@ -554,25 +731,20 @@ async function viewPastQuiz(quizId) {
   const { data: quiz } = await sb.from('dq_quizzes').select('quiz_date').eq('id', quizId).single();
   const { data: attempts, error } = await sb.from('dq_attempts').select('*, dq_users(username, stream)').eq('quiz_id', quizId);
   if (error || !quiz) {
-    document.getElementById('pastDetail').innerHTML = '<p>Could not load this quiz.</p>';
+    $('pastDetail').innerHTML = '<p class="muted">Could not load this quiz.</p>';
     return;
   }
-  // Use same render function
   window._lbRows = attempts;
-  const container = document.getElementById('pastDetail');
+  const tabs = ['overall','science','commercial','art','maths','english','gk','stream'];
+  const tabLabels = { overall:'Overall', science:'Science', commercial:'Commercial', art:'Art', maths:'Mathematics', english:'English', gk:'General Knowledge', stream:'Stream Subject' };
+  const container = $('pastDetail');
   container.innerHTML = `
+    <div class="divider"></div>
     <h3>${quiz.quiz_date}</h3>
-    <div class="tabs">
-      <button onclick="renderLB('overall')">Overall</button>
-      <button onclick="renderLB('science')">Science</button>
-      <button onclick="renderLB('commercial')">Commercial</button>
-      <button onclick="renderLB('art')">Art</button>
-      <button onclick="renderLB('maths')">Mathematics</button>
-      <button onclick="renderLB('english')">English</button>
-      <button onclick="renderLB('gk')">General Knowledge</button>
-      <button onclick="renderLB('stream')">Stream Subject</button>
+    <div class="flex" style="margin-top:10px">
+      ${tabs.map(t => `<button class="btn btn-secondary" onclick="renderLB('${t}')">${tabLabels[t]}</button>`).join('')}
     </div>
-    <div id="lbArea"></div>
+    <div id="lbArea" style="margin-top:14px"></div>
   `;
   renderLB('overall');
 }
@@ -584,18 +756,27 @@ async function adminHome() {
   const ses = loadSession();
   if (!ses?.admin) return loginScreen();
   show(`
-    <div class="app">
-      <div class="top">
-        <div>
-          <h2 class="brand">DAILY QUIZ ADMIN</h2>
-          <span class="pill">${esc(ses.username)}</span>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-row">
+          <div class="logo-mark">DQ</div>
+          <div class="brand-text">
+            <div class="name">Daily Quiz Challenge — Admin</div>
+            <div class="who">${esc(ses.username)}</div>
+          </div>
         </div>
-        <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        <button class="btn btn-ghost" onclick="logout()">Log out</button>
       </div>
+    </div>
+    <div class="content">
       <div class="card">
-        <h3>Create / schedule a quiz</h3>
-        <input id="quizDate" type="date" value="${today()}">
-        <button class="btn btn-primary" onclick="createQuiz()">Create quiz</button>
+        <h2>Schedule a quiz</h2>
+        <p class="muted" style="margin:6px 0 12px">Create a quiz for today or set one up in advance — a new link appears for students automatically at midnight.</p>
+        <div class="flex" style="align-items:flex-end">
+          <div style="flex:1;min-width:200px"><input id="quizDate" type="date" value="${today()}" style="margin:0"></div>
+          <button class="btn btn-primary" onclick="createQuiz()">Create quiz</button>
+        </div>
+        <div id="createMsg"></div>
       </div>
       <div id="adminList"></div>
       <div id="editor"></div>
@@ -605,79 +786,127 @@ async function adminHome() {
 }
 
 async function createQuiz() {
-  const date = document.getElementById('quizDate').value;
+  const date = $('quizDate').value;
+  const msgEl = $('createMsg');
   if (!date) return;
   const { error } = await sb.from('dq_quizzes').insert({ quiz_date: date });
-  if (error) return alert(error.message);
-  alert('Quiz scheduled.');
+  if (error) {
+    msgEl.innerHTML = `<div class="banner error">${error.code === '23505' ? 'A quiz already exists for that date.' : esc(error.message)}</div>`;
+    return;
+  }
+  msgEl.innerHTML = `<div class="banner success">Quiz scheduled for ${date}.</div>`;
   loadAdminQuizzes();
 }
 
 async function loadAdminQuizzes() {
   const { data, error } = await sb.from('dq_quizzes').select('*').order('quiz_date', { ascending: false });
-  const container = document.getElementById('adminList');
-  if (error) {
-    container.innerHTML = `<div class="msg">${esc(error.message)}</div>`;
-    return;
-  }
+  const container = $('adminList');
+  if (error) { container.innerHTML = `<div class="card"><div class="banner error">${esc(error.message)}</div></div>`; return; }
+  const t = today();
   container.innerHTML = `
     <div class="card">
-      <h3>Scheduled / past quizzes</h3>
-      ${data.map(q => `<button class="btn btn-secondary" style="margin:4px" onclick="editQuiz(${q.id},'${q.quiz_date}')">${q.quiz_date}</button>`).join('')}
+      <h2>Scheduled quizzes</h2>
+      <div class="quiz-list" style="margin-top:12px">
+      ${data.map(q => `
+        <button class="quiz-chip ${q.quiz_date===t ? 'is-today' : (q.quiz_date < t ? 'is-past' : '')}" onclick="editQuiz(${q.id},'${q.quiz_date}')">
+          <span class="d">${q.quiz_date}</span>
+          <small>${q.quiz_date===t ? 'Today' : (q.quiz_date < t ? 'Past' : 'Upcoming')}</small>
+        </button>
+      `).join('') || '<p class="muted">No quizzes scheduled yet.</p>'}
+      </div>
     </div>
   `;
 }
 
 async function editQuiz(id, date) {
-  let h = `
-    <div class="card">
-      <h2>Question editor — ${date}</h2>
-      <p class="muted">Each subject must contain exactly 5 questions and exactly 25 marks.</p>
-  `;
+  $('editor').innerHTML = '<div class="card"><p class="muted">Loading questions…</p></div>';
+  const { data: existing, error } = await sb.from('dq_questions').select('*').eq('quiz_id', id).order('id', { ascending: true });
+  if (error) { $('editor').innerHTML = `<div class="card"><div class="banner error">${esc(error.message)}</div></div>`; return; }
+
+  const bySubject = {};
+  (existing || []).forEach(q => { (bySubject[q.subject] ||= []).push(q); });
+
   const subjects = ['maths', 'english', 'general_knowledge', 'science', 'commercial', 'art'];
+  let h = `<div class="card"><h2>Question editor — ${esc(date)}</h2><p class="muted" style="margin-top:6px">Each subject needs exactly 5 questions totalling 25 marks. Mathematics, English and General Knowledge are shared by every stream — the stream sections only apply to students in that stream.</p></div>`;
+
   for (const subject of subjects) {
-    h += `
-      <div class="subject-box">
-        <h3>${subject.replace('_', ' ').toUpperCase()}</h3>
-    `;
+    const qs = bySubject[subject] || [];
+    const total = qs.reduce((s,q)=>s+Number(q.marks),0);
+    const complete = qs.length === 5 && total === 25;
+    h += `<div class="card subject-box" id="box_${subject}">
+      <div class="top">
+        <h3>${subjectLabel(subject)}</h3>
+        <span class="badge ${complete ? 'ok' : 'pending'}">${complete ? 'Complete · 25/25' : (qs.length ? `${qs.length}/5 saved` : 'Not started')}</span>
+      </div>`;
     for (let i = 1; i <= 5; i++) {
+      const q = qs[i-1];
       h += `
-        <div class="qcard">
-          <b>Question ${i}</b>
-          <textarea id="q_${subject}_${i}" placeholder="Question text"></textarea>
-          <input id="o_${subject}_${i}" placeholder="Four options separated by | e.g. Option A|Option B|Option C|Option D">
-          <input id="c_${subject}_${i}" type="number" min="0" max="3" placeholder="Correct option: 0,1,2 or 3">
-          <input id="m_${subject}_${i}" type="number" min="1" max="25" placeholder="Marks">
+        <div class="qedit">
+          <div class="qnum">Q${i}</div>
+          <div class="qfields">
+            <textarea id="q_${subject}_${i}" placeholder="Question text">${q ? esc(q.question) : ''}</textarea>
+            <input id="o_${subject}_${i}" placeholder="Four options separated by | e.g. Option A|Option B|Option C|Option D" value="${q ? esc((q.options||[]).join('|')) : ''}">
+            <div class="qrow">
+              <input id="c_${subject}_${i}" type="number" min="0" max="3" placeholder="Correct option (0-3)" value="${q ? q.correct_index : ''}">
+              <input id="m_${subject}_${i}" type="number" min="1" max="25" placeholder="Marks" value="${q ? q.marks : ''}" oninput="updateTotal('${subject}')">
+            </div>
+          </div>
         </div>
       `;
     }
-    h += `<button class="btn btn-primary" onclick="saveSubject(${id},'${subject}')">Save ${subject.replace('_',' ')}</button></div>`;
+    h += `
+      <div class="top" style="margin-top:4px">
+        <span class="muted" id="total_${subject}"></span>
+        <button class="btn btn-primary" onclick="saveSubject(${id},'${subject}')">Save ${subjectLabel(subject)}</button>
+      </div>
+      <div id="msg_${subject}"></div>
+    </div>`;
   }
-  h += '</div>';
-  document.getElementById('editor').innerHTML = h;
+  $('editor').innerHTML = h;
+  subjects.forEach(updateTotal);
+}
+
+function updateTotal(subject) {
+  let total = 0;
+  for (let i = 1; i <= 5; i++) {
+    total += Number($(`m_${subject}_${i}`)?.value || 0);
+  }
+  const el = $(`total_${subject}`);
+  if (el) el.innerHTML = `Running total: <b class="${total===25 ? 'good' : 'bad'}">${total}/25</b>`;
 }
 
 async function saveSubject(quizId, subject) {
-  let items = [];
-  let total = 0;
-  for (let i = 1; i <= 5; i++) {
-    const question = document.getElementById(`q_${subject}_${i}`).value.trim();
-    const options = document.getElementById(`o_${subject}_${i}`).value.split('|').map(x => x.trim());
-    const correct = Number(document.getElementById(`c_${subject}_${i}`).value);
-    const marks = Number(document.getElementById(`m_${subject}_${i}`).value);
-    if (!question || options.length !== 4 || options.some(x => !x) || !Number.isInteger(correct) || correct < 0 || correct > 3 || !marks) {
-      throw new Error('Complete all 5 questions correctly.');
+  const msgEl = $(`msg_${subject}`);
+  try {
+    let items = [];
+    let total = 0;
+    for (let i = 1; i <= 5; i++) {
+      const question = $(`q_${subject}_${i}`).value.trim();
+      const options = $(`o_${subject}_${i}`).value.split('|').map(x => x.trim());
+      const correct = Number($(`c_${subject}_${i}`).value);
+      const marks = Number($(`m_${subject}_${i}`).value);
+      if (!question) throw new Error(`Question ${i} needs question text.`);
+      if (options.length !== 4 || options.some(x => !x)) throw new Error(`Question ${i} needs exactly 4 options separated by "|".`);
+      if (!Number.isInteger(correct) || correct < 0 || correct > 3) throw new Error(`Question ${i} needs a correct option between 0 and 3.`);
+      if (!marks || marks <= 0) throw new Error(`Question ${i} needs marks greater than 0.`);
+      total += marks;
+      items.push({ quiz_id: quizId, subject, question, options, correct_index: correct, marks });
     }
-    total += marks;
-    items.push({ quiz_id: quizId, subject, question, options, correct_index: correct, marks });
-  }
-  if (total !== 25) return alert(`${subject} must total exactly 25 marks. Current total: ${total}.`);
+    if (total !== 25) throw new Error(`${subjectLabel(subject)} must total exactly 25 marks — currently ${total}.`);
 
-  const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject', subject);
-  if (delError) return alert(delError.message);
-  const { error } = await sb.from('dq_questions').insert(items);
-  if (error) return alert(error.message);
-  alert(`${subject.replace('_',' ')} saved successfully: 25/25 marks.`);
+    const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject', subject);
+    if (delError) throw delError;
+    const { error } = await sb.from('dq_questions').insert(items);
+    if (error) throw error;
+
+    msgEl.innerHTML = `<div class="banner success">Saved successfully — 25/25 marks.</div>`;
+    const box = $(`box_${subject}`);
+    const badge = box.querySelector('.badge');
+    badge.textContent = 'Complete · 25/25';
+    badge.className = 'badge ok';
+  } catch (e) {
+    msgEl.innerHTML = `<div class="banner error">${esc(e.message)}</div>`;
+  }
 }
 
 /* ============================================================
