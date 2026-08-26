@@ -463,15 +463,21 @@ async function studentHome() {
   startQuiz();
 }
 
-function studentShell(body) {
+function appShell(body, active) {
+  const ses = loadSession();
+  const isAdmin = !!ses?.admin;
+  const brandWho = isAdmin ? 'Administrator' : `${esc(ses.username)} &middot; ${esc(subjectLabel(ses.stream))}`;
+  const navItems = isAdmin
+    ? [['dashboard','Manage Quizzes','adminHome'], ['users','Users','adminUsers'], ['leaderboard','Leaderboard','adminLeaderboardEntry'], ['past','Past Quizzes','pastQuizzes']]
+    : [['dashboard','Dashboard','studentHome'], ['leaderboard','Leaderboard','leaderboardPage'], ['past','Past Quizzes','pastQuizzes']];
   show(`
     <div class="topbar">
       <div class="topbar-inner">
         <div class="brand-row">
           <div class="logo-mark">DQ</div>
           <div class="brand-text">
-            <div class="name">Daily Quiz Challenge</div>
-            <div class="who">${esc(S.user.username)} &middot; ${esc(subjectLabel(S.user.stream))}</div>
+            <div class="name">Daily Quiz Challenge${isAdmin ? ' — Admin' : ''}</div>
+            <div class="who">${brandWho}</div>
           </div>
         </div>
         <button class="btn btn-ghost" onclick="logout()">Log out</button>
@@ -479,14 +485,14 @@ function studentShell(body) {
     </div>
     <div class="subnav">
       <div class="subnav-inner">
-        <button onclick="studentHome()">Dashboard</button>
-        <button onclick="leaderboardPage()">Leaderboard</button>
-        <button onclick="pastQuizzes()">Past Quizzes</button>
+        ${navItems.map(([key,label,fn]) => `<button style="${active===key ? 'color:var(--accent);border-bottom-color:var(--accent)' : ''}" onclick="${fn}()">${label}</button>`).join('')}
       </div>
     </div>
     <div class="content">${body}</div>
   `);
 }
+// Backwards-compatible alias used throughout the student-facing flow
+function studentShell(body) { appShell(body, 'dashboard'); }
 
 /* ============================================================
    START QUIZ
@@ -650,7 +656,7 @@ async function submitQuiz(auto, flag) {
    ============================================================ */
 async function leaderboardPage() {
   const { data: rows, error } = await sb.from('dq_attempts').select('*, dq_users(username, stream)').eq('quiz_id', S.quiz.id);
-  if (error) return studentShell('<div class="banner error">'+esc(error.message)+'</div>');
+  if (error) return appShell('<div class="banner error">'+esc(error.message)+'</div>', 'leaderboard');
 
   const tabs = ['overall','science','commercial','art','maths','english','gk','stream'];
   const tabLabels = { overall:'Overall', science:'Science', commercial:'Commercial', art:'Art', maths:'Mathematics', english:'English', gk:'General Knowledge', stream:'Stream Subject' };
@@ -667,7 +673,7 @@ async function leaderboardPage() {
       <div id="lbArea" style="margin-top:14px"></div>
     </div>
   `;
-  studentShell(body);
+  appShell(body, 'leaderboard');
   window._lbRows = rows;
   renderLB('overall');
 }
@@ -711,20 +717,31 @@ function renderLB(mode) {
   `;
 }
 
+async function adminLeaderboardEntry() {
+  appShell('<div class="card"><p class="muted">Loading…</p></div>', 'leaderboard');
+  const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
+  if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`, 'leaderboard'); return; }
+  if (!quiz) { appShell(`<div class="card center"><h2>No quiz today</h2><p class="muted" style="margin-top:6px">Nothing has been scheduled for today yet.</p></div>`, 'leaderboard'); return; }
+  S.quiz = quiz;
+  leaderboardPage();
+}
+
 /* ============================================================
    PAST QUIZZES
    ============================================================ */
 async function pastQuizzes() {
+  const ses = loadSession();
+  const active = ses?.admin ? 'past' : 'past';
   const { data, error } = await sb.from('dq_quizzes').select('id, quiz_date').lt('quiz_date', today()).order('quiz_date', { ascending: false });
-  if (error) return studentShell('<div class="banner error">Error loading past quizzes.</div>');
-  if (!data || data.length === 0) return studentShell('<div class="card"><h2>Past Quizzes</h2><p class="muted" style="margin-top:6px">No past quizzes yet.</p></div>');
+  if (error) return appShell('<div class="banner error">Error loading past quizzes.</div>', active);
+  if (!data || data.length === 0) return appShell('<div class="card"><h2>Past Quizzes</h2><p class="muted" style="margin-top:6px">No past quizzes yet.</p></div>', active);
 
   let body = `<div class="card"><h2>Past Quizzes</h2><div class="quiz-list" style="margin-top:12px">`;
   for (const q of data) {
     body += `<button class="quiz-chip" onclick="viewPastQuiz('${q.id}')"><span class="d">${q.quiz_date}</span></button>`;
   }
   body += `</div><div id="pastDetail"></div></div>`;
-  studentShell(body);
+  appShell(body, active);
 }
 
 async function viewPastQuiz(quizId) {
@@ -755,34 +772,62 @@ async function viewPastQuiz(quizId) {
 async function adminHome() {
   const ses = loadSession();
   if (!ses?.admin) return loginScreen();
-  show(`
-    <div class="topbar">
-      <div class="topbar-inner">
-        <div class="brand-row">
-          <div class="logo-mark">DQ</div>
-          <div class="brand-text">
-            <div class="name">Daily Quiz Challenge — Admin</div>
-            <div class="who">${esc(ses.username)}</div>
-          </div>
-        </div>
-        <button class="btn btn-ghost" onclick="logout()">Log out</button>
+  appShell(`
+    <div class="card">
+      <h2>Schedule a quiz</h2>
+      <p class="muted" style="margin:6px 0 12px">Create a quiz for today or set one up in advance — a new link appears for students automatically at midnight.</p>
+      <div class="flex" style="align-items:flex-end">
+        <div style="flex:1;min-width:200px"><input id="quizDate" type="date" value="${today()}" style="margin:0"></div>
+        <button class="btn btn-primary" onclick="createQuiz()">Create quiz</button>
       </div>
+      <div id="createMsg"></div>
     </div>
-    <div class="content">
-      <div class="card">
-        <h2>Schedule a quiz</h2>
-        <p class="muted" style="margin:6px 0 12px">Create a quiz for today or set one up in advance — a new link appears for students automatically at midnight.</p>
-        <div class="flex" style="align-items:flex-end">
-          <div style="flex:1;min-width:200px"><input id="quizDate" type="date" value="${today()}" style="margin:0"></div>
-          <button class="btn btn-primary" onclick="createQuiz()">Create quiz</button>
-        </div>
-        <div id="createMsg"></div>
-      </div>
-      <div id="adminList"></div>
-      <div id="editor"></div>
-    </div>
-  `);
+    <div id="adminList"></div>
+    <div id="editor"></div>
+  `, 'dashboard');
   loadAdminQuizzes();
+}
+
+/* ============================================================
+   ADMIN — USERS
+   ============================================================ */
+async function adminUsers() {
+  appShell('<div class="card"><p class="muted">Loading users…</p></div>', 'users');
+  const { data, error } = await sb.from('dq_users').select('*').order('username', { ascending: true });
+  if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`, 'users'); return; }
+
+  const streamCounts = { science: 0, commercial: 0, art: 0 };
+  (data || []).forEach(u => { if (streamCounts[u.stream] !== undefined) streamCounts[u.stream]++; });
+
+  const body = `
+    <div class="card">
+      <div class="top">
+        <h2>All participants</h2>
+        <span class="pill">${(data || []).length} total</span>
+      </div>
+      <p class="muted">Every registered user, new and old.</p>
+      <div class="flex" style="margin-top:10px">
+        <span class="pill">Science &middot; ${streamCounts.science}</span>
+        <span class="pill">Commercial &middot; ${streamCounts.commercial}</span>
+        <span class="pill">Art &middot; ${streamCounts.art}</span>
+      </div>
+      <div style="overflow:auto;margin-top:16px">
+        <table>
+          <tr><th>#</th><th>Username</th><th>Stream</th><th>Security question</th><th>Joined</th></tr>
+          ${(data || []).map((u, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${esc(u.username)}</td>
+              <td>${esc(subjectLabel(u.stream))}</td>
+              <td>${esc(u.security_question || '—')}</td>
+              <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+            </tr>
+          `).join('') || `<tr><td colspan="5" class="muted">No users yet.</td></tr>`}
+        </table>
+      </div>
+    </div>
+  `;
+  appShell(body, 'users');
 }
 
 async function createQuiz() {
@@ -840,14 +885,34 @@ async function editQuiz(id, date) {
       </div>`;
     for (let i = 1; i <= 5; i++) {
       const q = qs[i-1];
+      const opts = q ? (q.options || []) : [];
+      const correctVal = q && q.correct_index !== null && q.correct_index !== undefined ? q.correct_index : '';
       h += `
-        <div class="qedit">
-          <div class="qnum">Q${i}</div>
-          <div class="qfields">
-            <textarea id="q_${subject}_${i}" placeholder="Question text">${q ? esc(q.question) : ''}</textarea>
-            <input id="o_${subject}_${i}" placeholder="Four options separated by | e.g. Option A|Option B|Option C|Option D" value="${q ? esc((q.options||[]).join('|')) : ''}">
-            <div class="qrow">
-              <input id="c_${subject}_${i}" type="number" min="0" max="3" placeholder="Correct option (0-3)" value="${q ? q.correct_index : ''}">
+        <div class="card" style="background:var(--surface-2);box-shadow:none">
+          <h3 style="margin-bottom:12px">Question ${i}</h3>
+          <label>Question text</label>
+          <textarea id="q_${subject}_${i}" placeholder="Type the question here...">${q ? esc(q.question) : ''}</textarea>
+          <label>Option A</label>
+          <input id="oa_${subject}_${i}" placeholder="Option A" value="${esc(opts[0] || '')}">
+          <label>Option B</label>
+          <input id="ob_${subject}_${i}" placeholder="Option B" value="${esc(opts[1] || '')}">
+          <label>Option C</label>
+          <input id="oc_${subject}_${i}" placeholder="Option C" value="${esc(opts[2] || '')}">
+          <label>Option D</label>
+          <input id="od_${subject}_${i}" placeholder="Option D" value="${esc(opts[3] || '')}">
+          <div class="qrow">
+            <div style="flex:1">
+              <label>Correct answer</label>
+              <select id="c_${subject}_${i}">
+                <option value="">Select</option>
+                <option value="0" ${correctVal===0?'selected':''}>A</option>
+                <option value="1" ${correctVal===1?'selected':''}>B</option>
+                <option value="2" ${correctVal===2?'selected':''}>C</option>
+                <option value="3" ${correctVal===3?'selected':''}>D</option>
+              </select>
+            </div>
+            <div style="flex:1">
+              <label>Marks</label>
               <input id="m_${subject}_${i}" type="number" min="1" max="25" placeholder="Marks" value="${q ? q.marks : ''}" oninput="updateTotal('${subject}')">
             </div>
           </div>
@@ -857,7 +922,7 @@ async function editQuiz(id, date) {
     h += `
       <div class="top" style="margin-top:4px">
         <span class="muted" id="total_${subject}"></span>
-        <button class="btn btn-primary" onclick="saveSubject(${id},'${subject}')">Save ${subjectLabel(subject)}</button>
+        <button class="btn btn-primary" id="savebtn_${subject}" onclick="saveSubject(${id},'${subject}')">Save ${subjectLabel(subject)}</button>
       </div>
       <div id="msg_${subject}"></div>
     </div>`;
@@ -872,7 +937,18 @@ function updateTotal(subject) {
     total += Number($(`m_${subject}_${i}`)?.value || 0);
   }
   const el = $(`total_${subject}`);
-  if (el) el.innerHTML = `Running total: <b class="${total===25 ? 'good' : 'bad'}">${total}/25</b>`;
+  const btn = $(`savebtn_${subject}`);
+  if (el) {
+    if (total > 25) {
+      el.innerHTML = `Running total: <b class="bad">${total}/25 — exceeds the limit by ${total - 25}</b>`;
+    } else if (total === 25) {
+      el.innerHTML = `Running total: <b class="good">${total}/25 — ready to save</b>`;
+    } else {
+      el.innerHTML = `Running total: <b class="bad">${total}/25 — ${25 - total} mark(s) remaining</b>`;
+    }
+  }
+  // Automatic cap detector: never allow this subject's total to exceed 25.
+  if (btn) btn.disabled = total > 25;
 }
 
 async function saveSubject(quizId, subject) {
@@ -882,16 +958,23 @@ async function saveSubject(quizId, subject) {
     let total = 0;
     for (let i = 1; i <= 5; i++) {
       const question = $(`q_${subject}_${i}`).value.trim();
-      const options = $(`o_${subject}_${i}`).value.split('|').map(x => x.trim());
-      const correct = Number($(`c_${subject}_${i}`).value);
+      const options = [
+        $(`oa_${subject}_${i}`).value.trim(),
+        $(`ob_${subject}_${i}`).value.trim(),
+        $(`oc_${subject}_${i}`).value.trim(),
+        $(`od_${subject}_${i}`).value.trim()
+      ];
+      const correctRaw = $(`c_${subject}_${i}`).value;
+      const correct = Number(correctRaw);
       const marks = Number($(`m_${subject}_${i}`).value);
       if (!question) throw new Error(`Question ${i} needs question text.`);
-      if (options.length !== 4 || options.some(x => !x)) throw new Error(`Question ${i} needs exactly 4 options separated by "|".`);
-      if (!Number.isInteger(correct) || correct < 0 || correct > 3) throw new Error(`Question ${i} needs a correct option between 0 and 3.`);
+      if (options.some(x => !x)) throw new Error(`Question ${i} needs all four options filled in.`);
+      if (correctRaw === '' || !Number.isInteger(correct) || correct < 0 || correct > 3) throw new Error(`Question ${i} needs a correct answer selected.`);
       if (!marks || marks <= 0) throw new Error(`Question ${i} needs marks greater than 0.`);
       total += marks;
       items.push({ quiz_id: quizId, subject, question, options, correct_index: correct, marks });
     }
+    if (total > 25) throw new Error(`${subjectLabel(subject)} exceeds the 25-mark limit — currently ${total}.`);
     if (total !== 25) throw new Error(`${subjectLabel(subject)} must total exactly 25 marks — currently ${total}.`);
 
     const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject', subject);
