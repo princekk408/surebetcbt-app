@@ -803,21 +803,82 @@
         }
 
         /* ===== BULK PARSER PREVIEW ===== */
-        .preview-table-wrap {
-            overflow: auto;
-            max-height: 360px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
+        .bulk-help {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:10px;
+            margin:12px 0 14px;
         }
-        .preview-table-wrap table {
-            font-size: 13px;
+        .bulk-help-item {
+            background:var(--surface);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:12px 14px;
+            font-size:12px;
+            color:var(--muted);
         }
-        .preview-table-wrap th,
-        .preview-table-wrap td {
-            padding: 10px 12px;
+        .bulk-help-item strong { color:var(--ink); display:block; margin-bottom:3px; }
+        .bulk-status {
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin:14px 0 4px;
         }
-        .preview-table-wrap .badge {
-            font-size: 10px;
+        .bulk-subject-preview {
+            border:1px solid var(--border);
+            border-radius:14px;
+            overflow:hidden;
+            background:var(--surface);
+            margin-top:12px;
+        }
+        .bulk-subject-head {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            padding:13px 15px;
+            background:var(--surface-2);
+            border-bottom:1px solid var(--border);
+        }
+        .bulk-subject-head h4 { margin:0; font-size:14px; }
+        .bulk-question {
+            padding:14px 15px;
+            border-bottom:1px solid var(--border);
+        }
+        .bulk-question:last-child { border-bottom:0; }
+        .bulk-q-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:10px;
+            margin-bottom:9px;
+        }
+        .bulk-q-number {
+            min-width:28px; height:28px; border-radius:50%;
+            display:inline-flex; align-items:center; justify-content:center;
+            background:var(--primary); color:#fff; font-weight:800; font-size:12px;
+        }
+        .bulk-q-text { flex:1; font-weight:700; font-size:13px; line-height:1.55; }
+        .bulk-marks {
+            white-space:nowrap; border-radius:999px; padding:5px 9px;
+            background:var(--accent-light); color:var(--primary); font-size:11px; font-weight:800;
+        }
+        .bulk-options { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px; }
+        .bulk-option {
+            border:1px solid var(--border); border-radius:9px; padding:8px 10px;
+            font-size:12px; line-height:1.4; background:var(--surface-2);
+        }
+        .bulk-option.correct { border-color:var(--success); background:var(--success-bg); font-weight:700; }
+        .bulk-option .letter { font-weight:900; margin-right:5px; }
+        .bulk-errors {
+            margin-top:12px; padding:12px 14px; border-radius:12px;
+            background:var(--danger-bg); color:var(--danger); font-size:12px;
+        }
+        @media (max-width:650px) {
+            .bulk-help { grid-template-columns:1fr; }
+            .bulk-options { grid-template-columns:1fr; }
+            .bulk-q-top { align-items:flex-start; }
+            .bulk-q-text { font-size:12.5px; }
         }
 
         /* ===== COUNTDOWN ===== */
@@ -1891,13 +1952,12 @@
                 <h3 style="color:var(--primary);">📥 Bulk Question Importer</h3>
                 <span class="badge gold">NEW</span>
               </div>
-              <p class="muted" style="font-size:13px;">Paste questions in the format below. The parser will detect subject, options, answer, and marks.</p>
-              <div style="background:var(--surface);padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:12.5px;font-family:monospace;margin:8px 0;">
-                Subject: Physics<br>
-                1. What is the SI unit of force?<br>
-                A) Joule<br>B) Newton<br>C) Watt<br>D) Pascal<br>
-                Answer: B<br>
-                Marks: 5
+              <p class="muted" style="font-size:13px;">Paste all your questions at once. The parser separates subjects automatically, keeps the correct question under the right subject, accepts variable marks, and checks that every subject has exactly 5 questions totalling 25 marks.</p>
+              <div class="bulk-help">
+                <div class="bulk-help-item"><strong>✅ Accepted format</strong>Subject: Mathematics → 1. Question → A) ... B) ... C) ... D) ... → Answer: B → Marks: 7</div>
+                <div class="bulk-help-item"><strong>📱 Better mobile preview</strong>Questions are shown as readable cards instead of a wide table that forces sideways scrolling.</div>
+                <div class="bulk-help-item"><strong>🔤 Subject names</strong>Mathematics/Maths, General Knowledge/GK, Commerce/Commercial and Art/Arts are all recognised.</div>
+                <div class="bulk-help-item"><strong>⚠️ Import protection</strong>Import is blocked if a subject has fewer/more than 5 questions or anything other than exactly 25 marks.</div>
               </div>
               <label>Paste your questions here</label>
               <textarea id="bulkInput" rows="8" placeholder="Subject: Physics&#10;1. What is the SI unit of force?&#10;A) Joule&#10;B) Newton&#10;C) Watt&#10;D) Pascal&#10;Answer: B&#10;Marks: 5"></textarea>
@@ -2031,112 +2091,134 @@
         }
 
         /* ============================================================
-           BULK PARSER
+           BULK PARSER — robust parser + mobile-friendly preview
            ============================================================ */
+        function normalizeBulkSubject(raw) {
+            const key = String(raw || '').trim().toLowerCase()
+                .replace(/&/g, 'and')
+                .replace(/[\-_]+/g, ' ')
+                .replace(/\s+/g, ' ');
+            const mapped = {
+                'math': 'maths',
+                'maths': 'maths',
+                'mathematics': 'maths',
+                'english': 'english',
+                'general': 'general_knowledge',
+                'gk': 'general_knowledge',
+                'general knowledge': 'general_knowledge',
+                'general knowledge or current affairs': 'general_knowledge',
+                'current affairs': 'general_knowledge',
+                'science': 'science',
+                'commercial': 'commercial',
+                'commerce': 'commercial',
+                'art': 'art',
+                'arts': 'art'
+            };
+            return mapped[key] || null;
+        }
+
         function parseBulkQuestions(text) {
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const lines = String(text || '')
+                .replace(/\r/g, '')
+                .split('\n')
+                .map(l => l.trim())
+                .filter(Boolean);
+
             const result = [];
+            const errors = [];
             let currentSubject = null;
             let currentQuestion = null;
+            let currentNumber = null;
             let currentOptions = [];
             let currentAnswer = null;
             let currentMarks = null;
-            let i = 0;
 
-            while (i < lines.length) {
+            const flushQuestion = () => {
+                if (currentQuestion === null) return;
+                const subject = currentSubject || 'general_knowledge';
+                const answerIndex = currentAnswer ? ['A','B','C','D'].indexOf(currentAnswer) : -1;
+                if (currentOptions.length !== 4) {
+                    errors.push(`${subjectLabel(subject)} question ${currentNumber || result.length + 1}: needs exactly 4 options.`);
+                } else if (answerIndex < 0) {
+                    errors.push(`${subjectLabel(subject)} question ${currentNumber || result.length + 1}: answer must be A, B, C or D.`);
+                }
+                if (currentQuestion.trim() && currentOptions.length === 4 && answerIndex >= 0) {
+                    result.push({
+                        subject,
+                        question: currentQuestion.trim(),
+                        options: currentOptions.slice(0,4),
+                        correct_index: answerIndex,
+                        marks: Number.isFinite(currentMarks) && currentMarks > 0 ? currentMarks : 5,
+                        number: currentNumber
+                    });
+                }
+                currentQuestion = null;
+                currentNumber = null;
+                currentOptions = [];
+                currentAnswer = null;
+                currentMarks = null;
+            };
+
+            for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-
-                // Subject: ...
-                const subjectMatch = line.match(/^Subject\s*[:=]\s*(.+)/i);
+                const subjectMatch = line.match(/^Subject\s*[:=]\s*(.+)$/i);
                 if (subjectMatch) {
-                    currentSubject = subjectMatch[1].trim().toLowerCase();
-                    // Map to valid subject
-                    const validSubjects = ['maths', 'english', 'general_knowledge', 'science', 'commercial', 'art'];
-                    const mapped = {
-                        'mathematics': 'maths',
-                        'math': 'maths',
-                        'gk': 'general_knowledge',
-                        'general': 'general_knowledge',
-                        'general knowledge': 'general_knowledge'
-                    };
-                    if (mapped[currentSubject]) currentSubject = mapped[currentSubject];
-                    if (!validSubjects.includes(currentSubject)) currentSubject = null;
-                    i++;
-                    continue;
-                }
-
-                // Question number: 1. or 1) or 1.
-                const qMatch = line.match(/^(\d+)[\.\)]\s*(.+)/);
-                if (qMatch) {
-                    // Save previous question if any
-                    if (currentQuestion !== null && currentOptions.length === 4 && currentAnswer !== null) {
-                        result.push({
-                            subject: currentSubject || 'general_knowledge',
-                            question: currentQuestion,
-                            options: currentOptions,
-                            correct_index: ['A', 'B', 'C', 'D'].indexOf(currentAnswer.toUpperCase()),
-                            marks: currentMarks || 5
-                        });
+                    flushQuestion();
+                    const normalized = normalizeBulkSubject(subjectMatch[1]);
+                    if (!normalized) {
+                        currentSubject = null;
+                        errors.push(`Unknown subject "${subjectMatch[1].trim()}". Use Mathematics, English, General Knowledge, Science, Commercial or Art.`);
+                    } else {
+                        currentSubject = normalized;
                     }
+                    continue;
+                }
+
+                const qMatch = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)\s*[\.\):\-]\s*(.*)$/i);
+                if (qMatch) {
+                    flushQuestion();
+                    currentNumber = Number(qMatch[1]);
                     currentQuestion = qMatch[2].trim();
-                    currentOptions = [];
-                    currentAnswer = null;
-                    currentMarks = null;
-                    i++;
                     continue;
                 }
 
-                // Option: A) ... or A. ...
-                const optMatch = line.match(/^([A-D])[\.\)]\s*(.+)/);
+                const optMatch = line.match(/^([A-D])\s*[\.\):\-]\s*(.+)$/i);
                 if (optMatch && currentQuestion !== null) {
-                    currentOptions.push(optMatch[2].trim());
-                    i++;
+                    const letter = optMatch[1].toUpperCase();
+                    const index = ['A','B','C','D'].indexOf(letter);
+                    currentOptions[index] = optMatch[2].trim();
                     continue;
                 }
 
-                // Answer: X
-                const ansMatch = line.match(/^Answer\s*[:=]\s*([A-D])/i);
+                const ansMatch = line.match(/^(?:Correct\s+)?Answer\s*[:=\-]\s*([A-D])\b/i);
                 if (ansMatch && currentQuestion !== null) {
                     currentAnswer = ansMatch[1].toUpperCase();
-                    i++;
                     continue;
                 }
 
-                // Marks: X
-                const marksMatch = line.match(/^Marks?\s*[:=]\s*(\d+)/i);
+                const marksMatch = line.match(/^Marks?\s*[:=\-]\s*(\d+(?:\.\d+)?)\s*$/i);
                 if (marksMatch && currentQuestion !== null) {
-                    currentMarks = parseInt(marksMatch[1]);
-                    i++;
+                    currentMarks = Number(marksMatch[1]);
                     continue;
                 }
 
-                // If it's a plain line and we have a current question, it might be a continuation
-                if (currentQuestion !== null && currentOptions.length < 4) {
-                    // It could be a multi-line question
-                    if (currentOptions.length === 0) {
-                        currentQuestion += ' ' + line;
-                    } else {
-                        // If we already have options, this line might be a question continuation
-                        // but more likely it's malformed — we'll skip
-                    }
-                    i++;
-                    continue;
+                // Allow wrapped question text before options.
+                if (currentQuestion !== null && currentOptions.length === 0 && currentAnswer === null && currentMarks === null) {
+                    currentQuestion += ' ' + line;
                 }
-
-                i++;
             }
+            flushQuestion();
 
-            // Save the last question
-            if (currentQuestion !== null && currentOptions.length === 4 && currentAnswer !== null) {
-                result.push({
-                    subject: currentSubject || 'general_knowledge',
-                    question: currentQuestion,
-                    options: currentOptions,
-                    correct_index: ['A', 'B', 'C', 'D'].indexOf(currentAnswer.toUpperCase()),
-                    marks: currentMarks || 5
-                });
-            }
+            // Add validation errors without blocking valid questions from previewing.
+            const bySubject = {};
+            result.forEach(q => (bySubject[q.subject] ||= []).push(q));
+            Object.entries(bySubject).forEach(([subject, qs]) => {
+                const total = qs.reduce((sum,q) => sum + Number(q.marks || 0), 0);
+                if (qs.length !== 5) errors.push(`${subjectLabel(subject)} has ${qs.length} parsed question(s); it needs exactly 5.`);
+                if (total !== 25) errors.push(`${subjectLabel(subject)} totals ${total}/25 marks; it must total exactly 25.`);
+            });
 
+            result.errors = errors;
             return result;
         }
 
@@ -2144,48 +2226,66 @@
             const input = $('bulkInput');
             const preview = $('bulkPreview');
             if (!input || !preview) return;
-            const text = input.value;
-            const parsed = parseBulkQuestions(text);
 
-            if (parsed.length === 0) {
-                preview.innerHTML = `<div class="banner warn">No questions could be parsed. Check the format.</div>`;
+            const parsed = parseBulkQuestions(input.value);
+            if (!parsed.length) {
+                preview.innerHTML = `<div class="banner error">No complete questions could be parsed. Check the format below and try again.</div>`;
                 return;
             }
 
-            // Group by subject and check totals
             const bySubject = {};
-            parsed.forEach(q => {
-                const s = q.subject;
-                if (!bySubject[s]) bySubject[s] = [];
-                bySubject[s].push(q);
-            });
+            parsed.forEach(q => (bySubject[q.subject] ||= []).push(q));
+            const subjectsOrder = ['english','maths','general_knowledge','science','art','commercial'];
+            const ordered = Object.keys(bySubject).sort((a,b) => subjectsOrder.indexOf(a) - subjectsOrder.indexOf(b));
 
-            let html = `<div class="divider"></div><h3>📋 Preview (${parsed.length} questions)</h3>`;
-            html += `<div class="preview-table-wrap"><table>
-            <thead><tr><th>#</th><th>Subject</th><th>Question</th><th>Options</th><th>Answer</th><th>Marks</th></tr></thead>
-            <tbody>`;
-            parsed.forEach((q, idx) => {
-                const ans = ['A', 'B', 'C', 'D'][q.correct_index] || '?';
-                const optsStr = q.options.map((o, j) => `${['A','B','C','D'][j]}) ${o}`).join(' &nbsp;|&nbsp; ');
-                html += `<tr>
-              <td>${idx+1}</td>
-              <td><span class="badge pending">${esc(subjectLabel(q.subject))}</span></td>
-              <td style="max-width:200px;word-break:break-word;">${esc(q.question)}</td>
-              <td style="font-size:12px;max-width:240px;">${esc(optsStr)}</td>
-              <td><strong>${ans}</strong></td>
-              <td>${q.marks}</td>
-            </tr>`;
-            });
-            html += `</tbody></table></div>`;
+            let html = `<div class="divider"></div>
+                <div class="top" style="margin-bottom:8px;">
+                  <div><h3>📋 Question Preview</h3><p class="muted">${parsed.length} questions parsed. Correct answers are highlighted in green.</p></div>
+                  <span class="badge gold">${parsed.length} QUESTIONS</span>
+                </div>`;
 
-            // Show subject totals
-            html += `<div class="flex" style="margin-top:10px;gap:8px;">`;
-            for (const [s, qs] of Object.entries(bySubject)) {
-                const total = qs.reduce((sum, q) => sum + q.marks, 0);
-                const ok = total === 25 && qs.length === 5;
-                html += `<span class="pill ${ok ? 'gold' : ''}">${esc(subjectLabel(s))}: ${total}/25 ${ok ? '✅' : '⚠️'}</span>`;
-            }
+            html += `<div class="bulk-status">`;
+            ordered.forEach(s => {
+                const qs = bySubject[s];
+                const total = qs.reduce((sum,q) => sum + Number(q.marks || 0), 0);
+                const ok = qs.length === 5 && total === 25;
+                html += `<span class="pill ${ok ? 'gold' : ''}">${esc(subjectLabel(s))}: ${qs.length}/5 · ${total}/25 ${ok ? '✅' : '⚠️'}</span>`;
+            });
             html += `</div>`;
+
+            ordered.forEach(s => {
+                const qs = bySubject[s];
+                const total = qs.reduce((sum,q) => sum + Number(q.marks || 0), 0);
+                const ok = qs.length === 5 && total === 25;
+                html += `<div class="bulk-subject-preview">
+                    <div class="bulk-subject-head">
+                      <h4>${esc(subjectLabel(s))}</h4>
+                      <span class="badge ${ok ? 'ok' : 'pending'}">${qs.length}/5 · ${total}/25 ${ok ? '✓ Ready' : '⚠️ Check'}</span>
+                    </div>`;
+                qs.forEach((q, idx) => {
+                    html += `<div class="bulk-question">
+                      <div class="bulk-q-top">
+                        <div style="display:flex;gap:9px;flex:1;align-items:flex-start;">
+                          <span class="bulk-q-number">${idx+1}</span>
+                          <div class="bulk-q-text">${esc(q.question)}</div>
+                        </div>
+                        <span class="bulk-marks">${q.marks} mark${q.marks === 1 ? '' : 's'}</span>
+                      </div>
+                      <div class="bulk-options">`;
+                    q.options.forEach((o,j) => {
+                        const letter = ['A','B','C','D'][j];
+                        html += `<div class="bulk-option ${j === q.correct_index ? 'correct' : ''}"><span class="letter">${letter})</span>${esc(o)}${j === q.correct_index ? ' ✓' : ''}</div>`;
+                    });
+                    html += `</div></div>`;
+                });
+                html += `</div>`;
+            });
+
+            if (parsed.errors?.length) {
+                html += `<div class="bulk-errors"><strong>⚠️ Import checks</strong><ul style="margin:7px 0 0 18px;">${parsed.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>`;
+            } else {
+                html += `<div class="banner success" style="margin-top:12px;">✅ All subjects have exactly 5 questions and 25 marks. Ready to import.</div>`;
+            }
             preview.innerHTML = html;
         }
 
@@ -2193,45 +2293,28 @@
             const input = $('bulkInput');
             const msg = $('bulkMsg');
             if (!input || !msg) return;
-            const text = input.value;
-            const parsed = parseBulkQuestions(text);
+            const parsed = parseBulkQuestions(input.value);
 
-            if (parsed.length === 0) {
-                msg.innerHTML = `<div class="banner error">No questions to import. Please check the format.</div>`;
+            if (!parsed.length) {
+                msg.innerHTML = `<div class="banner error">No complete questions to import. Please check the format.</div>`;
+                return;
+            }
+            if (parsed.errors?.length) {
+                msg.innerHTML = `<div class="banner error"><strong>Import blocked.</strong> ${esc(parsed.errors[0])} ${parsed.errors.length > 1 ? `(+${parsed.errors.length - 1} more issue${parsed.errors.length > 2 ? 's' : ''})` : ''}</div>`;
+                previewBulk();
                 return;
             }
 
-            // Group by subject and validate totals
             const bySubject = {};
-            parsed.forEach(q => {
-                const s = q.subject;
-                if (!bySubject[s]) bySubject[s] = [];
-                bySubject[s].push(q);
-            });
-
-            // Check that each subject has exactly 5 questions and totals 25 marks
-            for (const [s, qs] of Object.entries(bySubject)) {
-                const total = qs.reduce((sum, q) => sum + q.marks, 0);
-                if (qs.length !== 5) {
-                    msg.innerHTML =
-                        `<div class="banner error">${subjectLabel(s)} has ${qs.length} questions — needs exactly 5.</div>`;
-                    return;
-                }
-                if (total !== 25) {
-                    msg.innerHTML =
-                        `<div class="banner error">${subjectLabel(s)} totals ${total} marks — needs exactly 25.</div>`;
-                    return;
-                }
+            parsed.forEach(q => (bySubject[q.subject] ||= []).push(q));
+            const subjects = Object.keys(bySubject);
+            if (!subjects.length) {
+                msg.innerHTML = `<div class="banner error">No supported subjects were found.</div>`;
+                return;
             }
 
-            // Save each subject
             try {
                 for (const [s, qs] of Object.entries(bySubject)) {
-                    // Delete existing questions for this subject
-                    const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject',
-                        s);
-                    if (delError) throw delError;
-
                     const items = qs.map(q => ({
                         quiz_id: quizId,
                         subject: s,
@@ -2240,12 +2323,12 @@
                         correct_index: q.correct_index,
                         marks: q.marks
                     }));
+                    const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject', s);
+                    if (delError) throw delError;
                     const { error } = await sb.from('dq_questions').insert(items);
                     if (error) throw error;
                 }
-
-                msg.innerHTML = `<div class="banner success">✅ Successfully imported ${parsed.length} questions across ${Object.keys(bySubject).length} subject(s).</div>`;
-                // Refresh the editor
+                msg.innerHTML = `<div class="banner success">✅ Successfully imported ${parsed.length} questions across ${subjects.length} subject(s).</div>`;
                 editQuiz(quizId, S.quiz?.quiz_date || today());
             } catch (e) {
                 msg.innerHTML = `<div class="banner error">${esc(e.message)}</div>`;
