@@ -1,1051 +1,2354 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Daily Quiz Challenge</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root{
-    --bg:#f3f4f7;
-    --surface:#ffffff;
-    --surface-2:#f8f9fb;
-    --border:#e2e5eb;
-    --ink:#161b26;
-    --muted:#68707e;
-    --primary:#1c2540;
-    --primary-2:#252f52;
-    --accent:#2f5fe0;
-    --accent-ink:#1a3fb0;
-    --success:#0f8a4b;
-    --success-bg:#e7f6ee;
-    --danger:#c0362c;
-    --danger-bg:#fbeaea;
-    --warn:#92610c;
-    --warn-bg:#fdf1de;
-    --radius:12px;
-    --radius-sm:8px;
-    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
-    --shadow-md:0 10px 30px rgba(15,23,42,.08);
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;}
-  body{
-    font-family:'Inter',system-ui,-apple-system,sans-serif;
-    background:var(--bg);
-    color:var(--ink);
-    -webkit-font-smoothing:antialiased;
-  }
-  h1,h2,h3{letter-spacing:-0.01em;}
-  h2{font-size:20px;font-weight:700;}
-  h3{font-size:15px;font-weight:700;}
-  p{line-height:1.5;}
-  .muted{color:var(--muted);font-size:13.5px;}
-  a{color:var(--accent);}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Quiz Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <style>
+        /* ===== PREMIUM THEME ===== */
+        :root {
+            --bg: #f2eee9;
+            --surface: #ffffff;
+            --surface-2: #f8f5f1;
+            --border: #e2dbd3;
+            --ink: #1a1425;
+            --muted: #7a6f7a;
+            --primary: #1e1435;
+            --primary-2: #2c1f4a;
+            --primary-3: #3d2a5e;
+            --accent: #d4a84b;
+            --accent-2: #c4963a;
+            --accent-light: #f0d68a;
+            --accent-glow: rgba(212, 168, 75, 0.25);
+            --success: #0f8a4b;
+            --success-bg: #e7f6ee;
+            --danger: #b13a30;
+            --danger-bg: #fbeaea;
+            --warn: #8a6a0c;
+            --warn-bg: #fdf1de;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow-sm: 0 2px 8px rgba(30, 20, 53, 0.06);
+            --shadow-md: 0 12px 40px rgba(30, 20, 53, 0.10);
+            --shadow-lg: 0 20px 60px rgba(30, 20, 53, 0.14);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-  /* ---------- shared layout ---------- */
-  .content{max-width:1080px;margin:0 auto;padding:24px;}
-  .card{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:22px;
-    box-shadow:var(--shadow-sm);
-    margin:16px 0;
-  }
-  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
-  .top:last-child{margin-bottom:0;}
-  .center{text-align:center;}
-  .hidden{display:none!important;}
-  .flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
-  .divider{height:1px;background:var(--border);margin:18px 0;}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html,
+        body {
+            height: 100%;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
 
-  input,select,textarea{
-    width:100%;
-    font-family:inherit;
-    font-size:14px;
-    padding:11px 13px;
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    margin:6px 0 14px;
-    background:var(--surface);
-    color:var(--ink);
-    transition:border-color .15s;
-  }
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,95,224,.12);}
-  textarea{min-height:80px;resize:vertical;}
-  label{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+        h1,
+        h2,
+        h3 {
+            letter-spacing: -0.02em;
+            font-weight: 800;
+        }
+        h2 {
+            font-size: 22px;
+        }
+        h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        p {
+            line-height: 1.6;
+        }
+        .muted {
+            color: var(--muted);
+            font-size: 13.5px;
+        }
+        a {
+            color: var(--accent-2);
+            text-decoration: none;
+        }
 
-  .btn{
-    border:0;
-    border-radius:var(--radius-sm);
-    padding:11px 18px;
-    font-weight:700;
-    font-size:14px;
-    cursor:pointer;
-    font-family:inherit;
-    transition:background .15s,border-color .15s,opacity .15s;
-  }
-  .btn-primary{background:var(--primary);color:#fff;}
-  .btn-primary:hover{background:var(--primary-2);}
-  .btn-secondary{background:var(--surface-2);color:var(--ink);border:1px solid var(--border);}
-  .btn-secondary:hover{background:#eef0f4;}
-  .btn-danger{background:var(--danger-bg);color:var(--danger);}
-  .btn-danger:hover{opacity:.85;}
-  .btn-link{background:transparent;color:var(--accent);padding:8px 0;width:100%;text-align:center;}
-  .btn-link:hover{text-decoration:underline;}
-  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;}
-  .btn-ghost:hover{background:rgba(255,255,255,.1);}
+        /* ===== LAYOUT ===== */
+        .content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 28px 24px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 26px;
+            box-shadow: var(--shadow-sm);
+            margin: 18px 0;
+            transition: var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .top:last-child {
+            margin-bottom: 0;
+        }
+        .center {
+            text-align: center;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .flex {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+        }
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+        .gap-sm {
+            gap: 6px;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .mb-12 {
+            margin-bottom: 12px;
+        }
 
-  .banner{padding:12px 14px;border-radius:var(--radius-sm);margin-top:10px;font-size:13.5px;font-weight:600;}
-  .banner.warn{background:var(--warn-bg);color:var(--warn);}
-  .banner.error{background:var(--danger-bg);color:var(--danger);}
-  .banner.success{background:var(--success-bg);color:var(--success);}
+        /* ===== FORMS ===== */
+        input,
+        select,
+        textarea {
+            width: 100%;
+            font-family: inherit;
+            font-size: 14px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin: 6px 0 14px;
+            background: var(--surface);
+            color: var(--ink);
+            transition: var(--transition);
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: block;
+            margin-top: 4px;
+        }
 
-  .pill{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:6px 12px;border-radius:999px;
-    background:var(--surface-2);border:1px solid var(--border);
-    font-weight:600;font-size:12.5px;color:var(--ink);
-  }
-  .badge{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
-  .badge.flag{background:var(--danger-bg);color:var(--danger);}
-  .badge.ok{background:var(--success-bg);color:var(--success);}
-  .badge.pending{background:var(--warn-bg);color:var(--warn);}
+        /* ===== BUTTONS ===== */
+        .btn {
+            border: 0;
+            border-radius: var(--radius-sm);
+            padding: 12px 22px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(30, 20, 53, 0.25);
+        }
+        .btn-secondary {
+            background: var(--surface-2);
+            color: var(--ink);
+            border: 1.5px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: #ede8e2;
+            border-color: var(--accent);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: var(--primary);
+        }
+        .btn-accent:hover {
+            background: var(--accent-2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(212, 168, 75, 0.35);
+        }
+        .btn-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .btn-danger:hover {
+            opacity: 0.85;
+        }
+        .btn-link {
+            background: transparent;
+            color: var(--accent-2);
+            padding: 8px 0;
+            width: 100%;
+            text-align: center;
+        }
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+        .btn-ghost {
+            background: transparent;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.10);
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: var(--primary);
+            font-weight: 800;
+        }
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(212, 168, 75, 0.40);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
 
-  table{width:100%;border-collapse:collapse;font-size:14px;}
-  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border);}
-  th{background:var(--surface-2);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
-  tbody tr:hover{background:var(--surface-2);}
-  .rank{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:12px;}
-  .rank-1{background:#c79a2b;}
-  .rank-2{background:#9aa5b4;}
-  .rank-3{background:#a9713f;}
+        /* ===== BANNERS ===== */
+        .banner {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-top: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+        .banner.warn {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+        .banner.error {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .banner.success {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .banner.info {
+            background: #e8edf5;
+            color: #2a3f6a;
+        }
 
-  /* ---------- top bars ---------- */
-  .topbar{background:var(--primary);color:#fff;padding:16px 24px;}
-  .topbar-inner{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-  .brand-row{display:flex;align-items:center;gap:10px;}
-  .logo-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;letter-spacing:.02em;}
-  .brand-text .name{font-weight:800;font-size:15px;letter-spacing:.01em;}
-  .brand-text .who{font-size:12px;color:#aab2c8;}
-  .topbar .pill{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#fff;}
+        /* ===== PILLS & BADGES ===== */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 12.5px;
+            color: var(--ink);
+        }
+        .pill.gold {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+        .badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .badge.flag {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .badge.ok {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .badge.pending {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+        .badge.gold {
+            background: var(--accent-light);
+            color: var(--primary);
+        }
 
-  .subnav{background:var(--surface);border-bottom:1px solid var(--border);}
-  .subnav-inner{max-width:1080px;margin:0 auto;display:flex;gap:2px;padding:0 24px;flex-wrap:wrap;}
-  .subnav button{background:transparent;border:0;padding:14px 14px;font-weight:600;font-size:13.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;}
-  .subnav button:hover{color:var(--ink);}
+        /* ===== TABLES ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th,
+        td {
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--surface-2);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            font-weight: 700;
+        }
+        tbody tr:hover {
+            background: var(--surface-2);
+        }
 
-  /* ---------- auth screens ---------- */
-  .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-  .auth-card{
-    width:100%;max-width:880px;
-    background:var(--surface);border:1px solid var(--border);border-radius:16px;
-    box-shadow:var(--shadow-md);
-    display:grid;grid-template-columns:1fr 1fr;overflow:hidden;
-  }
-  .auth-card.single{grid-template-columns:1fr;max-width:440px;}
-  .auth-side{background:var(--primary);color:#fff;padding:38px 34px;display:flex;flex-direction:column;justify-content:space-between;}
-  .auth-side-top .logo-mark{margin-bottom:18px;}
-  .auth-side h1{font-size:22px;font-weight:800;margin-bottom:10px;}
-  .auth-side p{color:#b7bfd4;font-size:13.5px;}
-  .auth-points{margin-top:24px;list-style:none;display:flex;flex-direction:column;gap:12px;}
-  .auth-points li{font-size:13px;color:#dbe0ee;padding-left:18px;position:relative;}
-  .auth-points li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent);}
-  .auth-form{padding:38px 34px;}
-  .auth-form h2{margin-bottom:4px;}
-  @media (max-width:680px){ .auth-card{grid-template-columns:1fr;} .auth-side{display:none;} }
+        /* ===== RANK ===== */
+        .rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #fff;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .rank-1 {
+            background: linear-gradient(135deg, #f5d76e, #d4a84b);
+            box-shadow: 0 2px 12px rgba(212, 168, 75, 0.4);
+        }
+        .rank-2 {
+            background: linear-gradient(135deg, #c8d0d9, #9aa5b4);
+            box-shadow: 0 2px 12px rgba(154, 165, 180, 0.3);
+        }
+        .rank-3 {
+            background: linear-gradient(135deg, #e8c4a0, #bf8f6b);
+            box-shadow: 0 2px 12px rgba(191, 143, 107, 0.3);
+        }
+        .rank-plain {
+            background: var(--surface-2);
+            color: var(--muted);
+            font-weight: 700;
+        }
+        .rank-medal {
+            font-size: 20px;
+            line-height: 1;
+        }
 
-  /* ---------- quiz taking ---------- */
-  .quiz-header{position:sticky;top:0;z-index:5;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;box-shadow:var(--shadow-sm);flex-wrap:wrap;gap:10px;}
-  .timer{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);}
-  .timer.danger{color:var(--danger);}
-  .qcard{border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:12px 0;border-left:3px solid var(--border);transition:border-color .15s;}
-  .qcard.answered{border-left-color:var(--success);}
-  .qcard .qmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
-  .qcard .qnum-label{font-weight:700;font-size:13.5px;}
-  .qcard .tag{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;}
-  .qcard .qtext{margin:8px 0 12px;font-size:15px;font-weight:500;}
-  .option{
-    display:flex;align-items:center;gap:10px;
-    padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);
-    margin:7px 0;cursor:pointer;font-size:14px;
-  }
-  .option:hover{border-color:var(--accent);background:var(--surface-2);}
-  .option.selected{border-color:var(--accent);background:rgba(47,95,224,.06);font-weight:600;}
-  .option input{width:auto;margin:0;}
+        /* ===== TOP BAR ===== */
+        .topbar {
+            background: var(--primary);
+            color: #fff;
+            padding: 16px 24px;
+            border-bottom: 3px solid var(--accent);
+        }
+        .topbar-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 15px;
+            color: var(--primary);
+            letter-spacing: 0.02em;
+        }
+        .brand-text .name {
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 0.01em;
+        }
+        .brand-text .who {
+            font-size: 12px;
+            color: #b8afc8;
+        }
+        .topbar .pill {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
 
-  .qnav-grid{display:flex;flex-wrap:wrap;gap:8px;}
-  .qchip{width:38px;height:38px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;}
-  .qchip:hover{border-color:var(--accent);}
-  .qchip.answered{background:var(--success-bg);border-color:var(--success);color:var(--success);}
-  .qchip.current{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,95,224,.15);}
+        /* ===== SUBNAV ===== */
+        .subnav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .subnav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 2px;
+            padding: 0 24px;
+            flex-wrap: wrap;
+        }
+        .subnav button {
+            background: transparent;
+            border: 0;
+            padding: 14px 18px;
+            font-weight: 600;
+            font-size: 13.5px;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+        .subnav button:hover {
+            color: var(--ink);
+        }
+        .subnav button.active {
+            color: var(--accent-2);
+            border-bottom-color: var(--accent);
+        }
+        .subnav button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
-  /* ---------- admin ---------- */
-  .subject-box .top{margin-bottom:10px;}
-  .qedit{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border);}
-  .qedit:last-of-type{border-bottom:0;}
-  .qnum{flex:0 0 32px;height:32px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);font-size:13px;}
-  .qfields{flex:1;min-width:0;}
-  .qfields textarea{min-height:56px;}
-  .qrow{display:flex;gap:10px;}
-  .qrow input{flex:1;}
-  .good{color:var(--success);}
-  .bad{color:var(--danger);}
-  .quiz-list{display:flex;flex-wrap:wrap;gap:8px;}
-  .quiz-chip{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:10px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:120px;font-family:inherit;}
-  .quiz-chip:hover{border-color:var(--accent);}
-  .quiz-chip .d{font-weight:700;font-size:13.5px;}
-  .quiz-chip small{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;}
-  .quiz-chip.is-today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
-  .quiz-chip.is-past{opacity:.65;}
+        /* ===== AUTH ===== */
+        .auth-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(145deg, var(--bg), #e8e0d8);
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 880px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+        }
+        .auth-card.single {
+            grid-template-columns: 1fr;
+            max-width: 440px;
+        }
+        .auth-side {
+            background: var(--primary);
+            color: #fff;
+            padding: 40px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-side::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -30%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(212, 168, 75, 0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .auth-side-top {
+            position: relative;
+            z-index: 1;
+        }
+        .auth-side-top .logo-mark {
+            margin-bottom: 20px;
+        }
+        .auth-side h1 {
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .auth-side p {
+            color: #c8bed8;
+            font-size: 14px;
+        }
+        .auth-points {
+            margin-top: 28px;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .auth-points li {
+            font-size: 13.5px;
+            color: #ddd6e8;
+            padding-left: 22px;
+            position: relative;
+        }
+        .auth-points li::before {
+            content: "◆";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--accent);
+            font-size: 12px;
+        }
+        .auth-form {
+            padding: 40px 36px;
+        }
+        .auth-form h2 {
+            margin-bottom: 4px;
+        }
+        @media (max-width: 680px) {
+            .auth-card {
+                grid-template-columns: 1fr;
+            }
+            .auth-side {
+                display: none;
+            }
+            .auth-form {
+                padding: 28px 22px;
+            }
+        }
 
-  @media (max-width:600px){ .content{padding:16px;} .auth-form,.auth-side{padding:26px 22px;} }
-</style>
+        /* ===== QUIZ ===== */
+        .quiz-header {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .timer {
+            font-family: 'Space Mono', monospace;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.02em;
+        }
+        .timer.danger {
+            color: var(--danger);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .qcard {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            margin: 14px 0;
+            border-left: 4px solid var(--border);
+            transition: var(--transition);
+            background: var(--surface);
+        }
+        .qcard.answered {
+            border-left-color: var(--success);
+        }
+        .qcard .qmeta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+        .qcard .qnum-label {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .qcard .tag {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+            font-weight: 700;
+        }
+        .qcard .qtext {
+            margin: 8px 0 14px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .option:hover {
+            border-color: var(--accent);
+            background: var(--surface-2);
+        }
+        .option.selected {
+            border-color: var(--accent);
+            background: rgba(212, 168, 75, 0.10);
+            font-weight: 600;
+        }
+        .option input {
+            width: auto;
+            margin: 0;
+            accent-color: var(--accent);
+        }
+
+        .qnav-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .qchip {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .qchip:hover {
+            border-color: var(--accent);
+            transform: scale(1.04);
+        }
+        .qchip.answered {
+            background: var(--success-bg);
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .qchip.current {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        /* ===== ADMIN ===== */
+        .subject-box .top {
+            margin-bottom: 10px;
+        }
+        .qedit {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+        .qedit:last-of-type {
+            border-bottom: 0;
+        }
+        .qnum {
+            flex: 0 0 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .qfields {
+            flex: 1;
+            min-width: 0;
+        }
+        .qfields textarea {
+            min-height: 56px;
+        }
+        .qrow {
+            display: flex;
+            gap: 12px;
+        }
+        .qrow input {
+            flex: 1;
+        }
+        .good {
+            color: var(--success);
+        }
+        .bad {
+            color: var(--danger);
+        }
+
+        .quiz-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .quiz-chip {
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 120px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+        .quiz-chip:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .quiz-chip .d {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .quiz-chip small {
+            color: var(--muted);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .quiz-chip.is-today {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+        .quiz-chip.is-past {
+            opacity: 0.6;
+        }
+
+        /* ===== BULK PARSER PREVIEW ===== */
+        .preview-table-wrap {
+            overflow: auto;
+            max-height: 360px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .preview-table-wrap table {
+            font-size: 13px;
+        }
+        .preview-table-wrap th,
+        .preview-table-wrap td {
+            padding: 10px 12px;
+        }
+        .preview-table-wrap .badge {
+            font-size: 10px;
+        }
+
+        /* ===== COUNTDOWN ===== */
+        .countdown-display {
+            font-family: 'Space Mono', monospace;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.04em;
+            background: var(--surface-2);
+            padding: 16px 32px;
+            border-radius: var(--radius);
+            display: inline-block;
+            border: 1px solid var(--border);
+        }
+        .countdown-display .label {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .content {
+                padding: 16px;
+            }
+            .card {
+                padding: 18px 16px;
+            }
+            .auth-form,
+            .auth-side {
+                padding: 28px 20px;
+            }
+            .countdown-display {
+                font-size: 32px;
+                padding: 12px 20px;
+            }
+            .topbar {
+                padding: 12px 16px;
+            }
+            .subnav-inner {
+                padding: 0 12px;
+            }
+            .subnav button {
+                padding: 10px 12px;
+                font-size: 12.5px;
+            }
+            .quiz-header {
+                padding: 12px 14px;
+            }
+            .timer {
+                font-size: 20px;
+            }
+            .qcard {
+                padding: 14px 16px;
+            }
+        }
+
+        /* ===== UTILITY ===== */
+        .text-accent {
+            color: var(--accent-2);
+        }
+        .bg-accent-light {
+            background: var(--accent-light);
+        }
+        .fw-800 {
+            font-weight: 800;
+        }
+        .fs-14 {
+            font-size: 14px;
+        }
+        .gap-4 {
+            gap: 4px;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--surface-2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        .leaderboard-row {
+            transition: var(--transition);
+        }
+        .leaderboard-row:hover {
+            background: var(--surface-2);
+        }
+        .leaderboard-row.top1 {
+            background: rgba(212, 168, 75, 0.08);
+        }
+        .leaderboard-row.top2 {
+            background: rgba(154, 165, 180, 0.08);
+        }
+        .leaderboard-row.top3 {
+            background: rgba(191, 143, 107, 0.08);
+        }
+
+        .start-screen {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .start-screen .big-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+        .start-screen h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .start-screen .desc {
+            font-size: 15px;
+            color: var(--muted);
+            max-width: 480px;
+            margin: 8px auto 24px;
+        }
+
+        .quiz-locked .lock-icon {
+            font-size: 40px;
+            opacity: 0.4;
+        }
+    </style>
 </head>
 <body>
-<div id="app"></div>
+    <div id="app"></div>
 
-<script>
-'use strict';
+    <script>
+        'use strict';
 
-/* ============================================================
-   SUPABASE CONFIG
-   ============================================================ */
-const SUPABASE_URL = 'https://ucerqmewibwkxdgtgqvc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZXJxbWV3aWJ3a3hkZ3RncXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MzM1NDMsImV4cCI6MjA5NzEwOTU0M30.4wB1N229r__yCZo5unB1WVsnMf_Erk_p8aT1MySTgCU';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        /* ============================================================
+           SUPABASE
+           ============================================================ */
+        const SUPABASE_URL = 'https://ucerqmewibwkxdgtgqvc.supabase.co';
+        const SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZXJxbWV3aWJ3a3hkZ3RncXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MzM1NDMsImV4cCI6MjA5NzEwOTU0M30.4wB1N229r__yCZo5unB1WVsnMf_Erk_p8aT1MySTgCU';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const today = () => new Date().toISOString().slice(0,10);
-const localMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
-const sha256 = async text => {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-};
-function subjectLabel(s) {
-  return { maths:'Mathematics', english:'English', general_knowledge:'General Knowledge', science:'Science', commercial:'Commercial', art:'Art' }[s] || s;
-}
-const sessionKey = 'daily_quiz_session';
-let S = { user: null, quiz: null, questions: [], answers: {}, startedAt: 0, timer: null, leaveCount: 0, submitted: false };
-let FP = { user: null };
+        /* ============================================================
+           HELPERS
+           ============================================================ */
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+            "'": '&#39;' }[c]));
+        const today = () => new Date().toISOString().slice(0, 10);
+        const localMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+        const localSeconds = () => { const d = new Date(); return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds(); };
+        const sha256 = async text => {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        };
 
-function saveSession(x) { localStorage.setItem(sessionKey, JSON.stringify(x)); }
-function loadSession() { try { return JSON.parse(localStorage.getItem(sessionKey) || 'null'); } catch { return null; } }
-function clearSession() { localStorage.removeItem(sessionKey); }
-function show(html) { document.getElementById('app').innerHTML = html; }
+        function subjectLabel(s) {
+            const map = {
+                maths: 'Mathematics',
+                english: 'English',
+                general_knowledge: 'General Knowledge',
+                science: 'Science',
+                commercial: 'Commercial',
+                art: 'Art'
+            };
+            return map[s] || s;
+        }
 
-/* ============================================================
-   AUTH SCREENS
-   ============================================================ */
-function loginScreen(message = '') {
-  show(`
-    <div class="auth-wrap">
-      <div class="auth-card">
-        <div class="auth-side">
-          <div class="auth-side-top">
-            <div class="logo-mark">DQ</div>
-            <h1>Daily Quiz Challenge</h1>
-            <p>A timed, competitive daily quiz for Science, Commercial and Art students.</p>
-          </div>
-          <ul class="auth-points">
-            <li>New quiz opens daily at <b>12:00&nbsp;PM</b>, closes at <b>6:00&nbsp;PM</b></li>
-            <li>20 questions &middot; 10 minutes &middot; 100 marks</li>
-            <li>Leaderboard revealed at <b>6:30&nbsp;PM</b></li>
-          </ul>
-        </div>
-        <div class="auth-form">
-          <h2>Sign in</h2>
-          <p class="muted">Enter your username and password to continue.</p>
-          <label>Username</label>
-          <input id="loginUser" autocomplete="username">
-          <label>Password</label>
-          <input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
-          <button class="btn btn-primary" style="width:100%" onclick="login()">Sign in</button>
-          <button class="btn btn-link" onclick="forgotPasswordScreen()">Forgot password?</button>
-          ${message ? `<div class="banner warn">${message}</div>` : ''}
-          <div class="divider"></div>
-          <p class="muted center">New participant?</p>
-          <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="signupScreen()">Create an account</button>
-        </div>
-      </div>
-    </div>
-  `);
-}
+        const sessionKey = 'daily_quiz_session';
+        let S = { user: null, quiz: null, questions: [], answers: {}, startedAt: 0, timer: null, leaveCount: 0,
+            submitted: false, currentIndex: 0, examStarted: false };
+        let FP = { user: null };
 
-function signupScreen(message = '') {
-  show(`
-    <div class="auth-wrap">
-      <div class="auth-card single">
-        <div class="auth-form">
-          <h2>Create your account</h2>
-          <p class="muted">Choose your stream carefully — it determines your final 5 questions.</p>
-          <label>Username</label><input id="suUser">
-          <label>Password</label><input id="suPass" type="password">
-          <label>Stream</label>
-          <select id="suStream">
-            <option value="science">Science</option>
-            <option value="commercial">Commercial</option>
-            <option value="art">Art</option>
-          </select>
-          <label>Security question</label><input id="suQuestion" placeholder="e.g. What is your favourite colour?">
-          <label>Security answer</label><input id="suAnswer">
-          <button class="btn btn-primary" style="width:100%" onclick="signup()">Create account</button>
-          <button class="btn btn-link" onclick="loginScreen()">Back to sign in</button>
-          ${message ? `<div class="banner ${/success/i.test(message) ? 'success' : 'warn'}">${message}</div>` : ''}
-        </div>
-      </div>
-    </div>
-  `);
-}
+        function saveSession(x) { localStorage.setItem(sessionKey, JSON.stringify(x)); }
 
-async function signup() {
-  try {
-    const username = $('suUser').value.trim();
-    const password = $('suPass').value;
-    const stream = $('suStream').value;
-    const q = $('suQuestion').value.trim();
-    const a = $('suAnswer').value.trim();
-    if (!username || !password || !q || !a) throw new Error('Please complete every field.');
+        function loadSession() { try { return JSON.parse(localStorage.getItem(sessionKey) || 'null'); } catch { return null; } }
 
-    const { data: existing, error: e1 } = await sb.from('dq_users').select('id').eq('username', username).maybeSingle();
-    if (e1) throw e1;
-    if (existing) throw new Error('That username already exists.');
+        function clearSession() { localStorage.removeItem(sessionKey); }
 
-    const { error } = await sb.from('dq_users').insert({
-      username,
-      password_hash: await sha256(password),
-      stream,
-      security_question: q,
-      security_answer_hash: await sha256(a.toLowerCase())
-    });
-    if (error) throw error;
-    loginScreen('Account created successfully. You can now sign in.');
-  } catch (e) {
-    signupScreen(esc(e.message));
-  }
-}
+        function show(html) { document.getElementById('app').innerHTML = html; }
 
-async function login() {
-  try {
-    const u = $('loginUser').value.trim();
-    const p = $('loginPass').value;
-    if (u === 'Ogonor Prince Bright' && p === '09068491316') {
-      saveSession({ admin: true, username: u });
-      return adminHome();
-    }
-    const { data: user, error } = await sb.from('dq_users').select('*').eq('username', u).maybeSingle();
-    if (error) throw error;
-    if (!user || user.password_hash !== await sha256(p)) throw new Error('Invalid username or password.');
-    saveSession({ id: user.id, username: user.username, stream: user.stream });
-    studentHome();
-  } catch (e) {
-    loginScreen(esc(e.message));
-  }
-}
+        /* ============================================================
+           QUIZ STATUS
+           ============================================================ */
+        function quizStatus() {
+            const m = localMinutes();
+            if (m < 720) return 'before'; // before 12:00
+            if (m < 1080) return 'open'; // 12:00 – 17:59
+            if (m < 1110) return 'closed'; // 18:00 – 18:29
+            return 'reveal'; // >= 18:30
+        }
 
-function forgotPasswordScreen(message = '') {
-  FP = { user: null };
-  show(`
-    <div class="auth-wrap">
-      <div class="auth-card single">
-        <div class="auth-form">
-          <h2>Reset password</h2>
-          <p class="muted">Enter your username to retrieve your security question.</p>
-          <label>Username</label>
-          <input id="fpUser" autocomplete="username">
-          <button class="btn btn-secondary" style="width:100%" onclick="fpFindUser()">Find account</button>
-          <div id="fpStep2"></div>
-          ${message ? `<div class="banner error">${message}</div>` : ''}
-          <button class="btn btn-link" onclick="loginScreen()">Back to sign in</button>
-        </div>
-      </div>
-    </div>
-  `);
-}
+        function secondsUntilNoon() {
+            const now = new Date();
+            const noon = new Date(now);
+            noon.setHours(12, 0, 0, 0);
+            const diff = noon - now;
+            return diff > 0 ? Math.floor(diff / 1000) : 0;
+        }
 
-async function fpFindUser() {
-  const username = $('fpUser').value.trim();
-  const step2 = $('fpStep2');
-  if (!username) return;
-  const { data: u, error } = await sb.from('dq_users').select('*').eq('username', username).maybeSingle();
-  if (error || !u) { step2.innerHTML = `<div class="banner error">Username not found.</div>`; return; }
-  FP.user = u;
-  step2.innerHTML = `
-    <div class="divider"></div>
-    <label>${esc(u.security_question)}</label>
-    <input id="fpAnswer" placeholder="Your answer">
-    <label>New password</label>
-    <input id="fpNewPass" type="password" placeholder="New password">
-    <button class="btn btn-primary" style="width:100%" onclick="fpReset()">Reset password</button>
-    <div id="fpMsg"></div>
-  `;
-}
+        function secondsUntilSix() {
+            const now = new Date();
+            const six = new Date(now);
+            six.setHours(18, 0, 0, 0);
+            const diff = six - now;
+            return diff > 0 ? Math.floor(diff / 1000) : 0;
+        }
 
-async function fpReset() {
-  const answer = $('fpAnswer').value.trim();
-  const np = $('fpNewPass').value;
-  const msgEl = $('fpMsg');
-  if (!answer || !np) return;
-  if (await sha256(answer.toLowerCase()) !== FP.user.security_answer_hash) {
-    msgEl.innerHTML = `<div class="banner error">Incorrect answer.</div>`;
-    return;
-  }
-  const { error } = await sb.from('dq_users').update({ password_hash: await sha256(np) }).eq('id', FP.user.id);
-  if (error) { msgEl.innerHTML = `<div class="banner error">${esc(error.message)}</div>`; return; }
-  loginScreen('Password updated successfully. You can sign in now.');
-}
+        function formatCountdown(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+            return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
 
-function logout() {
-  clearSession();
-  clearInterval(S.timer);
-  loginScreen();
-}
-
-/* ============================================================
-   QUIZ STATUS
-   ============================================================ */
-function quizStatus() {
-  const m = localMinutes();
-  if (m < 720) return 'before';      // before 12:00
-  if (m < 1080) return 'open';       // 12:00 – 17:59
-  if (m < 1110) return 'closed';     // 18:00 – 18:29
-  return 'reveal';                   // >= 18:30
-}
-
-/* ============================================================
-   STUDENT HOME
-   ============================================================ */
-async function studentHome() {
-  const ses = loadSession();
-  if (!ses || ses.admin) return loginScreen();
-  S.user = ses;
-
-  const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
-  if (error) return studentShell(`<div class="banner error">${esc(error.message)}</div>`);
-  S.quiz = quiz;
-  if (!quiz) return studentShell(`
-    <div class="card center">
-      <h2>No quiz today</h2>
-      <p class="muted" style="margin-top:6px">Nothing has been scheduled for today yet. Check back later.</p>
-    </div>
-  `);
-
-  const { data: attempt } = await sb.from('dq_attempts').select('*').eq('user_id', ses.id).eq('quiz_id', quiz.id).maybeSingle();
-  const st = quizStatus();
-
-  if (attempt) {
-    if (st === 'reveal') return leaderboardPage();
-    return studentShell(`
-      <div class="card center">
-        <div class="banner success" style="display:inline-block">You have successfully completed this quiz.</div>
-        <p class="muted" style="margin-top:10px">Check your score and the leaderboard at <b>6:30 PM</b>.</p>
-      </div>
-    `);
-  }
-
-  if (st === 'before') return studentShell(`
-    <div class="card center">
-      <h2>Today's quiz opens soon</h2>
-      <p class="muted" style="margin-top:6px">The quiz opens at exactly <b>12:00 PM</b> and stays open until <b>6:00 PM</b>.</p>
-    </div>
-  `);
-
-  if (st === 'closed') return studentShell(`
-    <div class="card center">
-      <h2>Quiz window closed</h2>
-      <p class="muted" style="margin-top:6px">The attempt window closed at <b>6:00 PM</b>.<br>The leaderboard will be revealed at <b>6:30 PM</b>.</p>
-    </div>
-  `);
-
-  // Quiz is open – start
-  startQuiz();
-}
-
-function appShell(body, active) {
-  const ses = loadSession();
-  const isAdmin = !!ses?.admin;
-  const brandWho = isAdmin ? 'Administrator' : `${esc(ses.username)} &middot; ${esc(subjectLabel(ses.stream))}`;
-  const navItems = isAdmin
-    ? [['dashboard','Manage Quizzes','adminHome'], ['users','Users','adminUsers'], ['leaderboard','Leaderboard','adminLeaderboardEntry'], ['past','Past Quizzes','pastQuizzes']]
-    : [['dashboard','Dashboard','studentHome'], ['leaderboard','Leaderboard','leaderboardPage'], ['past','Past Quizzes','pastQuizzes']];
-  show(`
-    <div class="topbar">
-      <div class="topbar-inner">
-        <div class="brand-row">
-          <div class="logo-mark">DQ</div>
-          <div class="brand-text">
-            <div class="name">Daily Quiz Challenge${isAdmin ? ' — Admin' : ''}</div>
-            <div class="who">${brandWho}</div>
-          </div>
-        </div>
-        <button class="btn btn-ghost" onclick="logout()">Log out</button>
-      </div>
-    </div>
-    <div class="subnav">
-      <div class="subnav-inner">
-        ${navItems.map(([key,label,fn]) => `<button style="${active===key ? 'color:var(--accent);border-bottom-color:var(--accent)' : ''}" onclick="${fn}()">${label}</button>`).join('')}
-      </div>
-    </div>
-    <div class="content">${body}</div>
-  `);
-}
-// Backwards-compatible alias used throughout the student-facing flow
-function studentShell(body) { appShell(body, 'dashboard'); }
-
-/* ============================================================
-   START QUIZ
-   ============================================================ */
-async function startQuiz() {
-  const common = await sb.from('dq_questions').select('*').eq('quiz_id', S.quiz.id).in('subject', ['maths','english','general_knowledge']);
-  const special = await sb.from('dq_questions').select('*').eq('quiz_id', S.quiz.id).eq('subject', S.user.stream);
-  if (common.error || special.error) return studentShell('<div class="banner error">Could not load today\'s questions.</div>');
-
-  S.questions = [...common.data, ...special.data].sort(() => Math.random() - 0.5);
-  if (S.questions.length !== 20) {
-    return studentShell(`<div class="banner warn">Today's quiz is not ready yet. It needs exactly 20 questions for your stream; currently ${S.questions.length} are available.</div>`);
-  }
-
-  S.answers = {};
-  S.leaveCount = 0;
-  S.submitted = false;
-  S.currentIndex = 0;
-  S.startedAt = Date.now();
-  renderQuiz();
-  startTimer();
-  installAntiCheat();
-}
-
-function renderQuiz() {
-  const h = `
-    <div class="quiz-header">
-      <div class="flex">
-        <span class="pill">100 marks &middot; 20 questions</span>
-        <span class="pill" id="progress">${Object.keys(S.answers).length}/${S.questions.length} answered</span>
-      </div>
-      <div id="timer" class="timer">10:00</div>
-    </div>
-    <div id="cheatWarn"></div>
-    <div id="qArea"></div>
-    <div class="card">
-      <div class="flex" style="justify-content:space-between">
-        <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">Previous</button>
-        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next</button>
-      </div>
-    </div>
-    <div class="card">
-      <p class="muted" style="margin-bottom:10px">Jump to any question:</p>
-      <div class="qnav-grid" id="qnavGrid"></div>
-    </div>
-    <div class="card center">
-      <p class="muted" style="margin-bottom:12px">Review your answers before submitting — you only get one attempt per day.</p>
-      <button class="btn btn-primary" onclick="submitClick()">Submit quiz</button>
-    </div>
-  `;
-  studentShell(h);
-  renderCurrentQuestion();
-  renderQuizNav();
-}
-
-function renderCurrentQuestion() {
-  const i = S.currentIndex;
-  const x = S.questions[i];
-  const area = $('qArea');
-  if (!area || !x) return;
-  let h = `
-    <div class="qcard ${S.answers[i] !== undefined ? 'answered' : ''}" id="qcard${i}">
-      <div class="qmeta">
-        <span class="qnum-label">Question ${i+1} of ${S.questions.length}</span>
-        <span class="tag">${esc(subjectLabel(x.subject))} &middot; ${x.marks} marks</span>
-      </div>
-      <div class="qtext">${esc(x.question)}</div>
-  `;
-  (x.options || []).forEach((o, j) => {
-    const sel = S.answers[i] === j;
-    h += `
-      <label class="option ${sel ? 'selected' : ''}">
-        <input type="radio" name="q${i}" ${sel ? 'checked' : ''} onchange="choose(${i},${j})"> ${esc(o)}
-      </label>
-    `;
-  });
-  h += `</div>`;
-  area.innerHTML = h;
-  const prevBtn = $('prevBtn');
-  const nextBtn = $('nextBtn');
-  if (prevBtn) prevBtn.disabled = i === 0;
-  if (nextBtn) nextBtn.disabled = i === S.questions.length - 1;
-}
-
-function renderQuizNav() {
-  const grid = $('qnavGrid');
-  if (!grid) return;
-  grid.innerHTML = S.questions.map((x, i) => `
-    <div class="qchip ${S.answers[i] !== undefined ? 'answered' : ''} ${i === S.currentIndex ? 'current' : ''}" onclick="goToQuestion(${i})">${i+1}</div>
-  `).join('');
-}
-
-function goToQuestion(i) {
-  S.currentIndex = i;
-  renderCurrentQuestion();
-  renderQuizNav();
-}
-
-function nextQuestion() {
-  if (S.currentIndex < S.questions.length - 1) goToQuestion(S.currentIndex + 1);
-}
-
-function prevQuestion() {
-  if (S.currentIndex > 0) goToQuestion(S.currentIndex - 1);
-}
-
-function choose(i, j) {
-  S.answers[i] = j;
-  updateProgress();
-  renderCurrentQuestion();
-  renderQuizNav();
-}
-
-function updateProgress() {
-  const el = $('progress');
-  if (el) el.textContent = `${Object.keys(S.answers).length}/${S.questions.length} answered`;
-}
-
-function submitClick() {
-  const unanswered = 20 - Object.keys(S.answers).length;
-  if (unanswered > 0 && !confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
-  submitQuiz(false, false);
-}
-
-function startTimer() {
-  clearInterval(S.timer);
-  S.timer = setInterval(() => {
-    const left = Math.max(0, 600 - Math.floor((Date.now() - S.startedAt) / 1000));
-    const timerEl = $('timer');
-    if (timerEl) {
-      timerEl.textContent = Math.floor(left/60) + ':' + String(left%60).padStart(2,'0');
-      timerEl.classList.toggle('danger', left <= 60);
-    }
-    if (left === 0) submitQuiz(true, false);
-  }, 250);
-}
-
-function installAntiCheat() {
-  document.addEventListener('visibilitychange', visibilityHandler);
-  window.addEventListener('blur', blurHandler);
-}
-function removeAntiCheat() {
-  document.removeEventListener('visibilitychange', visibilityHandler);
-  window.removeEventListener('blur', blurHandler);
-}
-function violation() {
-  if (S.submitted) return;
-  S.leaveCount++;
-  const warn = $('cheatWarn');
-  if (warn) warn.innerHTML = `<div class="banner error">Anti-cheat warning ${S.leaveCount}/5 — you left the quiz tab. Return immediately or your quiz will be auto-submitted and flagged.</div>`;
-  if (S.leaveCount >= 5) submitQuiz(true, true);
-}
-function visibilityHandler() { if (document.hidden && S.questions.length && !S.submitted) violation(); }
-function blurHandler() { if (S.questions.length && !S.submitted && document.visibilityState === 'hidden') violation(); }
-
-async function submitQuiz(auto, flag) {
-  if (S.submitted) return;
-  S.submitted = true;
-  clearInterval(S.timer);
-  removeAntiCheat();
-
-  let total = 0;
-  const marks = { maths:0, english:0, general_knowledge:0, science:0, commercial:0, art:0 };
-  S.questions.forEach((x, i) => {
-    if (Number(S.answers[i]) === Number(x.correct_index)) {
-      total += Number(x.marks);
-      marks[x.subject] += Number(x.marks);
-    }
-  });
-  const elapsed = Math.min(600, Math.floor((Date.now() - S.startedAt) / 1000));
-  const payload = {
-    user_id: S.user.id,
-    quiz_id: S.quiz.id,
-    score: total,
-    elapsed_seconds: elapsed,
-    maths_score: marks.maths,
-    english_score: marks.english,
-    gk_score: marks.general_knowledge,
-    stream_score: marks[S.user.stream],
-    flagged_cheating: !!flag,
-    auto_submitted: !!auto
-  };
-
-  const { error } = await sb.from('dq_attempts').insert(payload);
-  if (error) {
-    S.submitted = false;
-    studentShell(`<div class="banner error">${esc(error.message)}</div>`);
-    return;
-  }
-  studentShell(`
-    <div class="card center">
-      <h2>Quiz completed</h2>
-      <div class="banner success" style="display:inline-block;margin-top:10px">You have successfully completed this quiz.</div>
-      <p class="muted" style="margin-top:10px">Your score is hidden until <b>6:30 PM</b>. Check the Leaderboard tab then.</p>
-      ${flag ? '<div class="banner error" style="margin-top:10px">Your attempt has been flagged for leaving the quiz tab too many times.</div>' : ''}
-    </div>
-  `);
-}
-
-/* ============================================================
-   LEADERBOARD
-   ============================================================ */
-async function leaderboardPage() {
-  const { data: rows, error } = await sb.from('dq_attempts').select('*, dq_users(username, stream)').eq('quiz_id', S.quiz.id);
-  if (error) return appShell('<div class="banner error">'+esc(error.message)+'</div>', 'leaderboard');
-
-  const tabs = ['overall','science','commercial','art','maths','english','gk','stream'];
-  const tabLabels = { overall:'Overall', science:'Science', commercial:'Commercial', art:'Art', maths:'Mathematics', english:'English', gk:'General Knowledge', stream:'Stream Subject' };
-
-  let body = `
-    <div class="card">
-      <div class="top">
-        <h2>Leaderboards</h2>
-        <span class="muted">${esc(S.quiz.quiz_date)} &middot; revealed at 6:30 PM</span>
-      </div>
-      <div class="flex" id="lbTabs">
-        ${tabs.map(t => `<button class="btn btn-secondary" onclick="renderLB('${t}')">${tabLabels[t]}</button>`).join('')}
-      </div>
-      <div id="lbArea" style="margin-top:14px"></div>
-    </div>
-  `;
-  appShell(body, 'leaderboard');
-  window._lbRows = rows;
-  renderLB('overall');
-}
-
-function scoreFor(r, mode) {
-  if (mode === 'maths') return Number(r.maths_score);
-  if (mode === 'english') return Number(r.english_score);
-  if (mode === 'gk') return Number(r.gk_score);
-  if (mode === 'stream') return Number(r.stream_score);
-  return Number(r.score);
-}
-
-function renderLB(mode) {
-  let arr = [...(window._lbRows || [])];
-  if (['science','commercial','art'].includes(mode)) {
-    arr = arr.filter(r => r.dq_users?.stream === mode);
-  }
-  arr.sort((a,b) => (scoreFor(b,mode) - scoreFor(a,mode)) || (Number(a.elapsed_seconds) - Number(b.elapsed_seconds)));
-  const max = (mode === 'overall') ? 100 : 25;
-  const area = $('lbArea');
-  if (!area) return;
-  const title = mode==='overall' ? 'Overall Leaderboard' : mode==='stream' ? 'Stream Subject Leaderboard' : subjectLabel(mode) + ' Leaderboard';
-  area.innerHTML = `
-    <h3 style="margin-bottom:10px">${title}</h3>
-    ${!arr.length ? '<p class="muted">No attempts to show.</p>' : `
-    <div style="overflow:auto">
-      <table>
-        <tr><th>Rank</th><th>Participant</th><th>Stream</th><th>Score</th><th>Time</th><th>Status</th></tr>
-        ${arr.map((r,i) => `
-          <tr>
-            <td>${i<3 ? `<span class="rank rank-${i+1}">${i+1}</span>` : i+1}</td>
-            <td>${esc(r.dq_users?.username)}</td>
-            <td>${esc(subjectLabel(r.dq_users?.stream))}</td>
-            <td><b>${scoreFor(r,mode)}/${max}</b>${mode==='overall' ? ` (${scoreFor(r,mode)}%)` : ''}</td>
-            <td>${Math.floor(r.elapsed_seconds/60)}:${String(r.elapsed_seconds%60).padStart(2,'0')}</td>
-            <td>${r.flagged_cheating ? '<span class="badge flag">Flagged</span>' : '<span class="badge ok">Clear</span>'}</td>
-          </tr>
-        `).join('')}
-      </table>
-    </div>`}
-  `;
-}
-
-async function adminLeaderboardEntry() {
-  appShell('<div class="card"><p class="muted">Loading…</p></div>', 'leaderboard');
-  const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
-  if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`, 'leaderboard'); return; }
-  if (!quiz) { appShell(`<div class="card center"><h2>No quiz today</h2><p class="muted" style="margin-top:6px">Nothing has been scheduled for today yet.</p></div>`, 'leaderboard'); return; }
-  S.quiz = quiz;
-  leaderboardPage();
-}
-
-/* ============================================================
-   PAST QUIZZES
-   ============================================================ */
-async function pastQuizzes() {
-  const ses = loadSession();
-  const active = ses?.admin ? 'past' : 'past';
-  const { data, error } = await sb.from('dq_quizzes').select('id, quiz_date').lt('quiz_date', today()).order('quiz_date', { ascending: false });
-  if (error) return appShell('<div class="banner error">Error loading past quizzes.</div>', active);
-  if (!data || data.length === 0) return appShell('<div class="card"><h2>Past Quizzes</h2><p class="muted" style="margin-top:6px">No past quizzes yet.</p></div>', active);
-
-  let body = `<div class="card"><h2>Past Quizzes</h2><div class="quiz-list" style="margin-top:12px">`;
-  for (const q of data) {
-    body += `<button class="quiz-chip" onclick="viewPastQuiz('${q.id}')"><span class="d">${q.quiz_date}</span></button>`;
-  }
-  body += `</div><div id="pastDetail"></div></div>`;
-  appShell(body, active);
-}
-
-async function viewPastQuiz(quizId) {
-  const { data: quiz } = await sb.from('dq_quizzes').select('quiz_date').eq('id', quizId).single();
-  const { data: attempts, error } = await sb.from('dq_attempts').select('*, dq_users(username, stream)').eq('quiz_id', quizId);
-  if (error || !quiz) {
-    $('pastDetail').innerHTML = '<p class="muted">Could not load this quiz.</p>';
-    return;
-  }
-  window._lbRows = attempts;
-  const tabs = ['overall','science','commercial','art','maths','english','gk','stream'];
-  const tabLabels = { overall:'Overall', science:'Science', commercial:'Commercial', art:'Art', maths:'Mathematics', english:'English', gk:'General Knowledge', stream:'Stream Subject' };
-  const container = $('pastDetail');
-  container.innerHTML = `
-    <div class="divider"></div>
-    <h3>${quiz.quiz_date}</h3>
-    <div class="flex" style="margin-top:10px">
-      ${tabs.map(t => `<button class="btn btn-secondary" onclick="renderLB('${t}')">${tabLabels[t]}</button>`).join('')}
-    </div>
-    <div id="lbArea" style="margin-top:14px"></div>
-  `;
-  renderLB('overall');
-}
-
-/* ============================================================
-   ADMIN PANEL
-   ============================================================ */
-async function adminHome() {
-  const ses = loadSession();
-  if (!ses?.admin) return loginScreen();
-  appShell(`
-    <div class="card">
-      <h2>Schedule a quiz</h2>
-      <p class="muted" style="margin:6px 0 12px">Create a quiz for today or set one up in advance — a new link appears for students automatically at midnight.</p>
-      <div class="flex" style="align-items:flex-end">
-        <div style="flex:1;min-width:200px"><input id="quizDate" type="date" value="${today()}" style="margin:0"></div>
-        <button class="btn btn-primary" onclick="createQuiz()">Create quiz</button>
-      </div>
-      <div id="createMsg"></div>
-    </div>
-    <div id="adminList"></div>
-    <div id="editor"></div>
-  `, 'dashboard');
-  loadAdminQuizzes();
-}
-
-/* ============================================================
-   ADMIN — USERS
-   ============================================================ */
-async function adminUsers() {
-  appShell('<div class="card"><p class="muted">Loading users…</p></div>', 'users');
-  const { data, error } = await sb.from('dq_users').select('*').order('username', { ascending: true });
-  if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`, 'users'); return; }
-
-  const streamCounts = { science: 0, commercial: 0, art: 0 };
-  (data || []).forEach(u => { if (streamCounts[u.stream] !== undefined) streamCounts[u.stream]++; });
-
-  const body = `
-    <div class="card">
-      <div class="top">
-        <h2>All participants</h2>
-        <span class="pill">${(data || []).length} total</span>
-      </div>
-      <p class="muted">Every registered user, new and old.</p>
-      <div class="flex" style="margin-top:10px">
-        <span class="pill">Science &middot; ${streamCounts.science}</span>
-        <span class="pill">Commercial &middot; ${streamCounts.commercial}</span>
-        <span class="pill">Art &middot; ${streamCounts.art}</span>
-      </div>
-      <div style="overflow:auto;margin-top:16px">
-        <table>
-          <tr><th>#</th><th>Username</th><th>Stream</th><th>Security question</th><th>Joined</th></tr>
-          ${(data || []).map((u, i) => `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${esc(u.username)}</td>
-              <td>${esc(subjectLabel(u.stream))}</td>
-              <td>${esc(u.security_question || '—')}</td>
-              <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-            </tr>
-          `).join('') || `<tr><td colspan="5" class="muted">No users yet.</td></tr>`}
-        </table>
-      </div>
-    </div>
-  `;
-  appShell(body, 'users');
-}
-
-async function createQuiz() {
-  const date = $('quizDate').value;
-  const msgEl = $('createMsg');
-  if (!date) return;
-  const { error } = await sb.from('dq_quizzes').insert({ quiz_date: date });
-  if (error) {
-    msgEl.innerHTML = `<div class="banner error">${error.code === '23505' ? 'A quiz already exists for that date.' : esc(error.message)}</div>`;
-    return;
-  }
-  msgEl.innerHTML = `<div class="banner success">Quiz scheduled for ${date}.</div>`;
-  loadAdminQuizzes();
-}
-
-async function loadAdminQuizzes() {
-  const { data, error } = await sb.from('dq_quizzes').select('*').order('quiz_date', { ascending: false });
-  const container = $('adminList');
-  if (error) { container.innerHTML = `<div class="card"><div class="banner error">${esc(error.message)}</div></div>`; return; }
-  const t = today();
-  container.innerHTML = `
-    <div class="card">
-      <h2>Scheduled quizzes</h2>
-      <div class="quiz-list" style="margin-top:12px">
-      ${data.map(q => `
-        <button class="quiz-chip ${q.quiz_date===t ? 'is-today' : (q.quiz_date < t ? 'is-past' : '')}" onclick="editQuiz(${q.id},'${q.quiz_date}')">
-          <span class="d">${q.quiz_date}</span>
-          <small>${q.quiz_date===t ? 'Today' : (q.quiz_date < t ? 'Past' : 'Upcoming')}</small>
-        </button>
-      `).join('') || '<p class="muted">No quizzes scheduled yet.</p>'}
-      </div>
-    </div>
-  `;
-}
-
-async function editQuiz(id, date) {
-  $('editor').innerHTML = '<div class="card"><p class="muted">Loading questions…</p></div>';
-  const { data: existing, error } = await sb.from('dq_questions').select('*').eq('quiz_id', id).order('id', { ascending: true });
-  if (error) { $('editor').innerHTML = `<div class="card"><div class="banner error">${esc(error.message)}</div></div>`; return; }
-
-  const bySubject = {};
-  (existing || []).forEach(q => { (bySubject[q.subject] ||= []).push(q); });
-
-  const subjects = ['maths', 'english', 'general_knowledge', 'science', 'commercial', 'art'];
-  let h = `<div class="card"><h2>Question editor — ${esc(date)}</h2><p class="muted" style="margin-top:6px">Each subject needs exactly 5 questions totalling 25 marks. Mathematics, English and General Knowledge are shared by every stream — the stream sections only apply to students in that stream.</p></div>`;
-
-  for (const subject of subjects) {
-    const qs = bySubject[subject] || [];
-    const total = qs.reduce((s,q)=>s+Number(q.marks),0);
-    const complete = qs.length === 5 && total === 25;
-    h += `<div class="card subject-box" id="box_${subject}">
-      <div class="top">
-        <h3>${subjectLabel(subject)}</h3>
-        <span class="badge ${complete ? 'ok' : 'pending'}">${complete ? 'Complete · 25/25' : (qs.length ? `${qs.length}/5 saved` : 'Not started')}</span>
-      </div>`;
-    for (let i = 1; i <= 5; i++) {
-      const q = qs[i-1];
-      const opts = q ? (q.options || []) : [];
-      const correctVal = q && q.correct_index !== null && q.correct_index !== undefined ? q.correct_index : '';
-      h += `
-        <div class="card" style="background:var(--surface-2);box-shadow:none">
-          <h3 style="margin-bottom:12px">Question ${i}</h3>
-          <label>Question text</label>
-          <textarea id="q_${subject}_${i}" placeholder="Type the question here...">${q ? esc(q.question) : ''}</textarea>
-          <label>Option A</label>
-          <input id="oa_${subject}_${i}" placeholder="Option A" value="${esc(opts[0] || '')}">
-          <label>Option B</label>
-          <input id="ob_${subject}_${i}" placeholder="Option B" value="${esc(opts[1] || '')}">
-          <label>Option C</label>
-          <input id="oc_${subject}_${i}" placeholder="Option C" value="${esc(opts[2] || '')}">
-          <label>Option D</label>
-          <input id="od_${subject}_${i}" placeholder="Option D" value="${esc(opts[3] || '')}">
-          <div class="qrow">
-            <div style="flex:1">
-              <label>Correct answer</label>
-              <select id="c_${subject}_${i}">
-                <option value="">Select</option>
-                <option value="0" ${correctVal===0?'selected':''}>A</option>
-                <option value="1" ${correctVal===1?'selected':''}>B</option>
-                <option value="2" ${correctVal===2?'selected':''}>C</option>
-                <option value="3" ${correctVal===3?'selected':''}>D</option>
-              </select>
+        /* ============================================================
+           AUTH
+           ============================================================ */
+        function loginScreen(message = '') {
+            show(`
+            <div class="auth-wrap">
+              <div class="auth-card">
+                <div class="auth-side">
+                  <div class="auth-side-top">
+                    <div class="logo-mark">DQ</div>
+                    <h1>Daily Quiz Challenge</h1>
+                    <p>A timed, competitive daily quiz for Science, Commercial and Art students.</p>
+                  </div>
+                  <ul class="auth-points">
+                    <li>New quiz opens daily at <b>12:00&nbsp;PM</b>, closes at <b>6:00&nbsp;PM</b></li>
+                    <li>20 questions &middot; 10 minutes &middot; 100 marks</li>
+                    <li>Leaderboard revealed at <b>6:30&nbsp;PM</b></li>
+                  </ul>
+                </div>
+                <div class="auth-form">
+                  <h2>Sign in</h2>
+                  <p class="muted">Enter your username and password to continue.</p>
+                  <label>Username</label>
+                  <input id="loginUser" autocomplete="username">
+                  <label>Password</label>
+                  <input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+                  <button class="btn btn-primary" style="width:100%" onclick="login()">Sign in</button>
+                  <button class="btn btn-link" onclick="forgotPasswordScreen()">Forgot password?</button>
+                  ${message ? `<div class="banner warn">${message}</div>` : ''}
+                  <div class="divider"></div>
+                  <p class="muted center">New participant?</p>
+                  <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="signupScreen()">Create an account</button>
+                </div>
+              </div>
             </div>
-            <div style="flex:1">
-              <label>Marks</label>
-              <input id="m_${subject}_${i}" type="number" min="1" max="25" placeholder="Marks" value="${q ? q.marks : ''}" oninput="updateTotal('${subject}')">
+          `);
+        }
+
+        function signupScreen(message = '') {
+            show(`
+            <div class="auth-wrap">
+              <div class="auth-card single">
+                <div class="auth-form">
+                  <h2>Create your account</h2>
+                  <p class="muted">Choose your stream carefully — it determines your final 5 questions.</p>
+                  <label>Username</label><input id="suUser">
+                  <label>Password</label><input id="suPass" type="password">
+                  <label>Stream</label>
+                  <select id="suStream">
+                    <option value="science">Science</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="art">Art</option>
+                  </select>
+                  <label>Security question</label><input id="suQuestion" placeholder="e.g. What is your favourite colour?">
+                  <label>Security answer</label><input id="suAnswer">
+                  <button class="btn btn-primary" style="width:100%" onclick="signup()">Create account</button>
+                  <button class="btn btn-link" onclick="loginScreen()">Back to sign in</button>
+                  ${message ? `<div class="banner ${/success/i.test(message) ? 'success' : 'warn'}">${message}</div>` : ''}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      `;
-    }
-    h += `
-      <div class="top" style="margin-top:4px">
-        <span class="muted" id="total_${subject}"></span>
-        <button class="btn btn-primary" id="savebtn_${subject}" onclick="saveSubject(${id},'${subject}')">Save ${subjectLabel(subject)}</button>
-      </div>
-      <div id="msg_${subject}"></div>
-    </div>`;
-  }
-  $('editor').innerHTML = h;
-  subjects.forEach(updateTotal);
-}
+          `);
+        }
 
-function updateTotal(subject) {
-  let total = 0;
-  for (let i = 1; i <= 5; i++) {
-    total += Number($(`m_${subject}_${i}`)?.value || 0);
-  }
-  const el = $(`total_${subject}`);
-  const btn = $(`savebtn_${subject}`);
-  if (el) {
-    if (total > 25) {
-      el.innerHTML = `Running total: <b class="bad">${total}/25 — exceeds the limit by ${total - 25}</b>`;
-    } else if (total === 25) {
-      el.innerHTML = `Running total: <b class="good">${total}/25 — ready to save</b>`;
-    } else {
-      el.innerHTML = `Running total: <b class="bad">${total}/25 — ${25 - total} mark(s) remaining</b>`;
-    }
-  }
-  // Automatic cap detector: never allow this subject's total to exceed 25.
-  if (btn) btn.disabled = total > 25;
-}
+        async function signup() {
+            try {
+                const username = $('suUser').value.trim();
+                const password = $('suPass').value;
+                const stream = $('suStream').value;
+                const q = $('suQuestion').value.trim();
+                const a = $('suAnswer').value.trim();
+                if (!username || !password || !q || !a) throw new Error('Please complete every field.');
 
-async function saveSubject(quizId, subject) {
-  const msgEl = $(`msg_${subject}`);
-  try {
-    let items = [];
-    let total = 0;
-    for (let i = 1; i <= 5; i++) {
-      const question = $(`q_${subject}_${i}`).value.trim();
-      const options = [
-        $(`oa_${subject}_${i}`).value.trim(),
-        $(`ob_${subject}_${i}`).value.trim(),
-        $(`oc_${subject}_${i}`).value.trim(),
-        $(`od_${subject}_${i}`).value.trim()
-      ];
-      const correctRaw = $(`c_${subject}_${i}`).value;
-      const correct = Number(correctRaw);
-      const marks = Number($(`m_${subject}_${i}`).value);
-      if (!question) throw new Error(`Question ${i} needs question text.`);
-      if (options.some(x => !x)) throw new Error(`Question ${i} needs all four options filled in.`);
-      if (correctRaw === '' || !Number.isInteger(correct) || correct < 0 || correct > 3) throw new Error(`Question ${i} needs a correct answer selected.`);
-      if (!marks || marks <= 0) throw new Error(`Question ${i} needs marks greater than 0.`);
-      total += marks;
-      items.push({ quiz_id: quizId, subject, question, options, correct_index: correct, marks });
-    }
-    if (total > 25) throw new Error(`${subjectLabel(subject)} exceeds the 25-mark limit — currently ${total}.`);
-    if (total !== 25) throw new Error(`${subjectLabel(subject)} must total exactly 25 marks — currently ${total}.`);
+                const { data: existing, error: e1 } = await sb.from('dq_users').select('id').eq('username', username)
+                    .maybeSingle();
+                if (e1) throw e1;
+                if (existing) throw new Error('That username already exists.');
 
-    const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject', subject);
-    if (delError) throw delError;
-    const { error } = await sb.from('dq_questions').insert(items);
-    if (error) throw error;
+                const { error } = await sb.from('dq_users').insert({
+                    username,
+                    password_hash: await sha256(password),
+                    stream,
+                    security_question: q,
+                    security_answer_hash: await sha256(a.toLowerCase())
+                });
+                if (error) throw error;
+                loginScreen('Account created successfully. You can now sign in.');
+            } catch (e) {
+                signupScreen(esc(e.message));
+            }
+        }
 
-    msgEl.innerHTML = `<div class="banner success">Saved successfully — 25/25 marks.</div>`;
-    const box = $(`box_${subject}`);
-    const badge = box.querySelector('.badge');
-    badge.textContent = 'Complete · 25/25';
-    badge.className = 'badge ok';
-  } catch (e) {
-    msgEl.innerHTML = `<div class="banner error">${esc(e.message)}</div>`;
-  }
-}
+        async function login() {
+            try {
+                const u = $('loginUser').value.trim();
+                const p = $('loginPass').value;
+                if (u === 'Ogonor Prince Bright' && p === '09068491316') {
+                    saveSession({ admin: true, username: u });
+                    return adminHome();
+                }
+                const { data: user, error } = await sb.from('dq_users').select('*').eq('username', u).maybeSingle();
+                if (error) throw error;
+                if (!user || user.password_hash !== await sha256(p)) throw new Error('Invalid username or password.');
+                saveSession({ id: user.id, username: user.username, stream: user.stream });
+                studentHome();
+            } catch (e) {
+                loginScreen(esc(e.message));
+            }
+        }
 
-/* ============================================================
-   BOOT
-   ============================================================ */
-const session = loadSession();
-if (session?.admin) adminHome();
-else if (session?.id) studentHome();
-else loginScreen();
-</script>
+        function forgotPasswordScreen(message = '') {
+            FP = { user: null };
+            show(`
+            <div class="auth-wrap">
+              <div class="auth-card single">
+                <div class="auth-form">
+                  <h2>Reset password</h2>
+                  <p class="muted">Enter your username to retrieve your security question.</p>
+                  <label>Username</label>
+                  <input id="fpUser" autocomplete="username">
+                  <button class="btn btn-secondary" style="width:100%" onclick="fpFindUser()">Find account</button>
+                  <div id="fpStep2"></div>
+                  ${message ? `<div class="banner error">${message}</div>` : ''}
+                  <button class="btn btn-link" onclick="loginScreen()">Back to sign in</button>
+                </div>
+              </div>
+            </div>
+          `);
+        }
+
+        async function fpFindUser() {
+            const username = $('fpUser').value.trim();
+            const step2 = $('fpStep2');
+            if (!username) return;
+            const { data: u, error } = await sb.from('dq_users').select('*').eq('username', username).maybeSingle();
+            if (error || !u) { step2.innerHTML = `<div class="banner error">Username not found.</div>`; return; }
+            FP.user = u;
+            step2.innerHTML = `
+            <div class="divider"></div>
+            <label>${esc(u.security_question)}</label>
+            <input id="fpAnswer" placeholder="Your answer">
+            <label>New password</label>
+            <input id="fpNewPass" type="password" placeholder="New password">
+            <button class="btn btn-primary" style="width:100%" onclick="fpReset()">Reset password</button>
+            <div id="fpMsg"></div>
+          `;
+        }
+
+        async function fpReset() {
+            const answer = $('fpAnswer').value.trim();
+            const np = $('fpNewPass').value;
+            const msgEl = $('fpMsg');
+            if (!answer || !np) return;
+            if (await sha256(answer.toLowerCase()) !== FP.user.security_answer_hash) {
+                msgEl.innerHTML = `<div class="banner error">Incorrect answer.</div>`;
+                return;
+            }
+            const { error } = await sb.from('dq_users').update({ password_hash: await sha256(np) }).eq('id', FP.user.id);
+            if (error) { msgEl.innerHTML = `<div class="banner error">${esc(error.message)}</div>`; return; }
+            loginScreen('Password updated successfully. You can sign in now.');
+        }
+
+        function logout() {
+            clearSession();
+            clearInterval(S.timer);
+            loginScreen();
+        }
+
+        /* ============================================================
+           APP SHELL
+           ============================================================ */
+        function appShell(body, active, extraNav = []) {
+            const ses = loadSession();
+            const isAdmin = !!ses?.admin;
+            const brandWho = isAdmin ? 'Administrator' : `${esc(ses.username)} &middot; ${esc(subjectLabel(ses.stream))}`;
+            let navItems = [];
+            if (isAdmin) {
+                navItems = [
+                    ['dashboard', 'Manage Quizzes', 'adminHome'],
+                    ['users', 'Users', 'adminUsers'],
+                    ['leaderboard', 'Leaderboard', 'adminLeaderboardEntry'],
+                    ['past', 'Past Quizzes', 'pastQuizzes']
+                ];
+            } else {
+                const st = quizStatus();
+                const lbDisabled = st !== 'reveal';
+                navItems = [
+                    ['dashboard', 'Dashboard', 'studentHome'],
+                    ['leaderboard', 'Leaderboard', lbDisabled ? null : 'leaderboardPage'],
+                    ['past', 'Past Quizzes', 'pastQuizzes']
+                ];
+            }
+            // merge extra
+            navItems = navItems.concat(extraNav);
+
+            show(`
+            <div class="topbar">
+              <div class="topbar-inner">
+                <div class="brand-row">
+                  <div class="logo-mark">DQ</div>
+                  <div class="brand-text">
+                    <div class="name">Daily Quiz Challenge${isAdmin ? ' — Admin' : ''}</div>
+                    <div class="who">${brandWho}</div>
+                  </div>
+                </div>
+                <button class="btn btn-ghost" onclick="logout()">Log out</button>
+              </div>
+            </div>
+            <div class="subnav">
+              <div class="subnav-inner">
+                ${navItems.map(([key,label,fn]) => {
+                  const isActive = active === key;
+                  const disabled = !fn;
+                  return `<button class="${isActive ? 'active' : ''}" ${disabled ? 'disabled' : ''} onclick="${fn ? fn + '()' : ''}">${label}</button>`;
+                }).join('')}
+              </div>
+            </div>
+            <div class="content">${body}</div>
+          `);
+        }
+
+        /* ============================================================
+           STUDENT HOME — with Start Exam & Countdown
+           ============================================================ */
+        async function studentHome() {
+            const ses = loadSession();
+            if (!ses || ses.admin) return loginScreen();
+            S.user = ses;
+
+            const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
+            if (error) return appShell(`<div class="banner error">${esc(error.message)}</div>`, 'dashboard');
+            S.quiz = quiz;
+
+            if (!quiz) {
+                return appShell(`
+              <div class="card center">
+                <h2>No quiz today</h2>
+                <p class="muted" style="margin-top:6px">Nothing has been scheduled for today yet. Check back later.</p>
+              </div>
+            `, 'dashboard');
+            }
+
+            const { data: attempt } = await sb.from('dq_attempts').select('*').eq('user_id', ses.id).eq('quiz_id', quiz.id)
+                .maybeSingle();
+            const st = quizStatus();
+
+            // If already attempted
+            if (attempt) {
+                if (st === 'reveal') return leaderboardPage();
+                return appShell(`
+              <div class="card center">
+                <div class="banner success" style="display:inline-block">You have successfully completed this quiz.</div>
+                <p class="muted" style="margin-top:10px">Check your score and the leaderboard at <b>6:30 PM</b>.</p>
+              </div>
+            `, 'dashboard');
+            }
+
+            // Before 12:00 — countdown to noon
+            if (st === 'before') {
+                const sec = secondsUntilNoon();
+                return appShell(`
+              <div class="card center start-screen">
+                <div class="big-icon">⏳</div>
+                <h2>Quiz opens at 12:00 PM</h2>
+                <p class="desc">Today's quiz will be available shortly. Get ready!</p>
+                <div class="countdown-display" id="countdownDisplay">
+                  <span class="label">Time until quiz opens</span>
+                  ${formatCountdown(sec)}
+                </div>
+              </div>
+            `, 'dashboard');
+            }
+
+            // Closed window (18:00 – 18:29)
+            if (st === 'closed') {
+                return appShell(`
+              <div class="card center">
+                <h2>Quiz window closed</h2>
+                <p class="muted" style="margin-top:6px">The attempt window closed at <b>6:00 PM</b>.<br>The leaderboard will be revealed at <b>6:30 PM</b>.</p>
+              </div>
+            `, 'dashboard');
+            }
+
+            // Open — show Start Exam button with countdown to 6:00 PM
+            if (st === 'open') {
+                const sec = secondsUntilSix();
+                return appShell(`
+              <div class="card center start-screen">
+                <div class="big-icon">📝</div>
+                <h2>Today's quiz is ready</h2>
+                <p class="desc">You have 10 minutes to answer 20 questions. Once you start, the timer begins — no pauses!</p>
+                <div class="countdown-display" style="margin-bottom:20px;font-size:28px;padding:12px 24px;">
+                  <span class="label">Time remaining to start</span>
+                  ${formatCountdown(sec)}
+                </div>
+                <button class="btn btn-gold" style="font-size:18px;padding:16px 48px;" onclick="startExam()">
+                  🚀 Start Exam
+                </button>
+                <p class="muted" style="margin-top:12px;font-size:12px;">You can only attempt this quiz once.</p>
+              </div>
+            `, 'dashboard');
+            }
+
+            // Reveal — leaderboard
+            if (st === 'reveal') return leaderboardPage();
+
+            return appShell(`<div class="card"><p class="muted">Something went wrong.</p></div>`, 'dashboard');
+        }
+
+        /* ============================================================
+           START EXAM (called when user clicks the button)
+           ============================================================ */
+        async function startExam() {
+            const ses = loadSession();
+            if (!ses || ses.admin) return;
+            S.user = ses;
+
+            // Re-fetch quiz to be safe
+            const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
+            if (error || !quiz) return studentHome();
+            S.quiz = quiz;
+
+            // Check if already attempted
+            const { data: attempt } = await sb.from('dq_attempts').select('*').eq('user_id', ses.id).eq('quiz_id', quiz.id)
+                .maybeSingle();
+            if (attempt) return studentHome();
+
+            // Load questions
+            const common = await sb.from('dq_questions').select('*').eq('quiz_id', S.quiz.id).in('subject', ['maths',
+                'english', 'general_knowledge'
+            ]);
+            const special = await sb.from('dq_questions').select('*').eq('quiz_id', S.quiz.id).eq('subject', S.user.stream);
+            if (common.error || special.error) return appShell('<div class="banner error">Could not load questions.</div>',
+                'dashboard');
+
+            S.questions = [...common.data, ...special.data].sort(() => Math.random() - 0.5);
+            if (S.questions.length !== 20) {
+                return appShell(
+                    `<div class="banner warn">Today's quiz is not ready. Need 20 questions; currently ${S.questions.length}.</div>`,
+                    'dashboard');
+            }
+
+            S.answers = {};
+            S.leaveCount = 0;
+            S.submitted = false;
+            S.currentIndex = 0;
+            S.startedAt = Date.now();
+            S.examStarted = true;
+            renderQuiz();
+            startTimer();
+            installAntiCheat();
+        }
+
+        /* ============================================================
+           RENDER QUIZ (no marks shown)
+           ============================================================ */
+        function renderQuiz() {
+            const h = `
+            <div class="quiz-header">
+              <div class="flex">
+                <span class="pill gold">100 marks &middot; 20 questions</span>
+                <span class="pill" id="progress">${Object.keys(S.answers).length}/${S.questions.length} answered</span>
+              </div>
+              <div id="timer" class="timer">10:00</div>
+            </div>
+            <div id="cheatWarn"></div>
+            <div id="qArea"></div>
+            <div class="card">
+              <div class="flex" style="justify-content:space-between">
+                <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">← Previous</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next →</button>
+              </div>
+            </div>
+            <div class="card">
+              <p class="muted" style="margin-bottom:10px">Jump to any question:</p>
+              <div class="qnav-grid" id="qnavGrid"></div>
+            </div>
+            <div class="card center">
+              <p class="muted" style="margin-bottom:12px">Review your answers before submitting — you only get one attempt per day.</p>
+              <button class="btn btn-gold" onclick="submitClick()">📤 Submit quiz</button>
+            </div>
+          `;
+            appShell(h, 'dashboard');
+            renderCurrentQuestion();
+            renderQuizNav();
+        }
+
+        function renderCurrentQuestion() {
+            const i = S.currentIndex;
+            const x = S.questions[i];
+            const area = $('qArea');
+            if (!area || !x) return;
+            // No marks shown — removed the marks display
+            let h = `
+            <div class="qcard ${S.answers[i] !== undefined ? 'answered' : ''}" id="qcard${i}">
+              <div class="qmeta">
+                <span class="qnum-label">Question ${i+1} of ${S.questions.length}</span>
+                <span class="tag">${esc(subjectLabel(x.subject))}</span>
+              </div>
+              <div class="qtext">${esc(x.question)}</div>
+          `;
+            (x.options || []).forEach((o, j) => {
+                const sel = S.answers[i] === j;
+                h += `
+              <label class="option ${sel ? 'selected' : ''}">
+                <input type="radio" name="q${i}" ${sel ? 'checked' : ''} onchange="choose(${i},${j})"> ${esc(o)}
+              </label>
+            `;
+            });
+            h += `</div>`;
+            area.innerHTML = h;
+            const prevBtn = $('prevBtn');
+            const nextBtn = $('nextBtn');
+            if (prevBtn) prevBtn.disabled = i === 0;
+            if (nextBtn) nextBtn.disabled = i === S.questions.length - 1;
+        }
+
+        function renderQuizNav() {
+            const grid = $('qnavGrid');
+            if (!grid) return;
+            grid.innerHTML = S.questions.map((x, i) => `
+            <div class="qchip ${S.answers[i] !== undefined ? 'answered' : ''} ${i === S.currentIndex ? 'current' : ''}" onclick="goToQuestion(${i})">${i+1}</div>
+          `).join('');
+        }
+
+        function goToQuestion(i) {
+            S.currentIndex = i;
+            renderCurrentQuestion();
+            renderQuizNav();
+        }
+
+        function nextQuestion() {
+            if (S.currentIndex < S.questions.length - 1) goToQuestion(S.currentIndex + 1);
+        }
+
+        function prevQuestion() {
+            if (S.currentIndex > 0) goToQuestion(S.currentIndex - 1);
+        }
+
+        function choose(i, j) {
+            S.answers[i] = j;
+            updateProgress();
+            renderCurrentQuestion();
+            renderQuizNav();
+        }
+
+        function updateProgress() {
+            const el = $('progress');
+            if (el) el.textContent = `${Object.keys(S.answers).length}/${S.questions.length} answered`;
+        }
+
+        function submitClick() {
+            const unanswered = 20 - Object.keys(S.answers).length;
+            if (unanswered > 0 && !confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
+            submitQuiz(false, false);
+        }
+
+        function startTimer() {
+            clearInterval(S.timer);
+            S.timer = setInterval(() => {
+                const left = Math.max(0, 600 - Math.floor((Date.now() - S.startedAt) / 1000));
+                const timerEl = $('timer');
+                if (timerEl) {
+                    timerEl.textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+                    timerEl.classList.toggle('danger', left <= 60);
+                }
+                if (left === 0) submitQuiz(true, false);
+            }, 250);
+        }
+
+        function installAntiCheat() {
+            document.addEventListener('visibilitychange', visibilityHandler);
+            window.addEventListener('blur', blurHandler);
+        }
+
+        function removeAntiCheat() {
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            window.removeEventListener('blur', blurHandler);
+        }
+
+        function violation() {
+            if (S.submitted) return;
+            S.leaveCount++;
+            const warn = $('cheatWarn');
+            if (warn) warn.innerHTML =
+                `<div class="banner error">⚠️ Anti-cheat warning ${S.leaveCount}/5 — you left the quiz tab. Return immediately or your quiz will be auto-submitted.</div>`;
+            if (S.leaveCount >= 5) submitQuiz(true, true);
+        }
+
+        function visibilityHandler() { if (document.hidden && S.questions.length && !S.submitted) violation(); }
+
+        function blurHandler() { if (S.questions.length && !S.submitted && document.visibilityState === 'hidden')
+            violation(); }
+
+        async function submitQuiz(auto, flag) {
+            if (S.submitted) return;
+            S.submitted = true;
+            clearInterval(S.timer);
+            removeAntiCheat();
+
+            let total = 0;
+            const marks = { maths: 0, english: 0, general_knowledge: 0, science: 0, commercial: 0, art: 0 };
+            S.questions.forEach((x, i) => {
+                if (Number(S.answers[i]) === Number(x.correct_index)) {
+                    total += Number(x.marks);
+                    marks[x.subject] += Number(x.marks);
+                }
+            });
+            const elapsed = Math.min(600, Math.floor((Date.now() - S.startedAt) / 1000));
+            const payload = {
+                user_id: S.user.id,
+                quiz_id: S.quiz.id,
+                score: total,
+                elapsed_seconds: elapsed,
+                maths_score: marks.maths,
+                english_score: marks.english,
+                gk_score: marks.general_knowledge,
+                stream_score: marks[S.user.stream],
+                flagged_cheating: !!flag,
+                auto_submitted: !!auto
+            };
+
+            const { error } = await sb.from('dq_attempts').insert(payload);
+            if (error) {
+                S.submitted = false;
+                appShell(`<div class="banner error">${esc(error.message)}</div>`, 'dashboard');
+                return;
+            }
+            appShell(`
+            <div class="card center">
+              <h2>✅ Quiz completed</h2>
+              <div class="banner success" style="display:inline-block;margin-top:10px">You have successfully completed this quiz.</div>
+              <p class="muted" style="margin-top:10px">Your score is hidden until <b>6:30 PM</b>. Check the Leaderboard tab then.</p>
+              ${flag ? '<div class="banner error" style="margin-top:10px">⚠️ Your attempt has been flagged for leaving the quiz tab too many times.</div>' : ''}
+            </div>
+          `, 'dashboard');
+        }
+
+        /* ============================================================
+           LEADERBOARD — only reveal after 6:30 PM for students
+           ============================================================ */
+        async function leaderboardPage() {
+            const ses = loadSession();
+            if (!ses || ses.admin) {
+                // admin can always see
+                return renderLeaderboard();
+            }
+            const st = quizStatus();
+            if (st !== 'reveal') {
+                // Countdown to 6:30 PM
+                const now = new Date();
+                const target = new Date(now);
+                target.setHours(18, 30, 0, 0);
+                let sec = Math.floor((target - now) / 1000);
+                if (sec < 0) sec = 0;
+                return appShell(`
+              <div class="card center quiz-locked">
+                <div class="lock-icon">🔒</div>
+                <h2>Leaderboard locked</h2>
+                <p class="muted" style="margin-top:6px">The leaderboard will be revealed at <b>6:30 PM</b>.</p>
+                <div class="countdown-display" style="margin-top:16px;font-size:28px;padding:12px 24px;">
+                  <span class="label">Time until reveal</span>
+                  ${formatCountdown(sec)}
+                </div>
+              </div>
+            `, 'leaderboard');
+            }
+            return renderLeaderboard();
+        }
+
+        async function renderLeaderboard() {
+            const ses = loadSession();
+            const isAdmin = ses?.admin;
+            // If no quiz set, try to load today's
+            if (!S.quiz) {
+                const { data: q } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
+                if (q) S.quiz = q;
+            }
+            if (!S.quiz) {
+                return appShell(`<div class="card center"><h2>No quiz today</h2><p class="muted">No leaderboard available.</p></div>`,
+                    'leaderboard');
+            }
+
+            const { data: rows, error } = await sb.from('dq_attempts')
+                .select('*, dq_users(username, stream)')
+                .eq('quiz_id', S.quiz.id);
+            if (error) return appShell(`<div class="banner error">${esc(error.message)}</div>`, 'leaderboard');
+
+            const tabs = ['overall', 'science', 'commercial', 'art', 'maths', 'english', 'gk', 'stream'];
+            const tabLabels = {
+                overall: 'Overall',
+                science: 'Science',
+                commercial: 'Commercial',
+                art: 'Art',
+                maths: 'Mathematics',
+                english: 'English',
+                gk: 'General Knowledge',
+                stream: 'Stream Subject'
+            };
+            const tabIcons = {
+                overall: '🏆',
+                science: '🔬',
+                commercial: '📊',
+                art: '🎨',
+                maths: '📐',
+                english: '📖',
+                gk: '🌍',
+                stream: '🎯'
+            };
+
+            let body = `
+            <div class="card">
+              <div class="top">
+                <h2>🏅 Leaderboards</h2>
+                <span class="pill gold">${esc(S.quiz.quiz_date)}</span>
+              </div>
+              <div class="flex" id="lbTabs" style="margin-bottom:12px">
+                ${tabs.map(t => `<button class="btn btn-secondary" onclick="renderLB('${t}')">${tabIcons[t]} ${tabLabels[t]}</button>`).join('')}
+              </div>
+              <div id="lbArea"></div>
+            </div>
+          `;
+            appShell(body, 'leaderboard');
+            window._lbRows = rows;
+            renderLB('overall');
+        }
+
+        function scoreFor(r, mode) {
+            if (mode === 'maths') return Number(r.maths_score);
+            if (mode === 'english') return Number(r.english_score);
+            if (mode === 'gk') return Number(r.gk_score);
+            if (mode === 'stream') return Number(r.stream_score);
+            return Number(r.score);
+        }
+
+        function renderLB(mode) {
+            let arr = [...(window._lbRows || [])];
+            if (['science', 'commercial', 'art'].includes(mode)) {
+                arr = arr.filter(r => r.dq_users?.stream === mode);
+            }
+            arr.sort((a, b) => (scoreFor(b, mode) - scoreFor(a, mode)) || (Number(a.elapsed_seconds) - Number(b
+            .elapsed_seconds)));
+
+            const max = (mode === 'overall') ? 100 : 25;
+            const area = $('lbArea');
+            if (!area) return;
+
+            const title = mode === 'overall' ? 'Overall Leaderboard' :
+                mode === 'stream' ? 'Stream Subject Leaderboard' :
+                subjectLabel(mode) + ' Leaderboard';
+            const icon = mode === 'overall' ? '🏆' :
+                mode === 'stream' ? '🎯' :
+                ['science', 'commercial', 'art', 'maths', 'english', 'gk'][['science', 'commercial', 'art', 'maths',
+                    'english', 'gk'
+                ].indexOf(mode)] || '📊';
+
+            if (!arr.length) {
+                area.innerHTML = `
+              <div class="center" style="padding:30px 0;">
+                <p class="muted">No attempts to show for this category yet.</p>
+              </div>
+            `;
+                return;
+            }
+
+            let rowsHtml = '';
+            arr.forEach((r, i) => {
+                const pct = Math.round((scoreFor(r, mode) / max) * 100);
+                let rankHtml;
+                if (i === 0) rankHtml = `<span class="rank rank-1">🥇</span>`;
+                else if (i === 1) rankHtml = `<span class="rank rank-2">🥈</span>`;
+                else if (i === 2) rankHtml = `<span class="rank rank-3">🥉</span>`;
+                else rankHtml = `<span class="rank rank-plain">${i+1}</span>`;
+
+                const rowClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+                rowsHtml += `
+              <tr class="leaderboard-row ${rowClass}">
+                <td style="width:50px;">${rankHtml}</td>
+                <td><strong>${esc(r.dq_users?.username)}</strong></td>
+                <td><span class="pill" style="font-size:11px;padding:2px 10px;">${esc(subjectLabel(r.dq_users?.stream))}</span></td>
+                <td><strong style="font-size:18px;color:var(--primary);">${pct}%</strong></td>
+                <td><span class="muted" style="font-size:13px;">${Math.floor(r.elapsed_seconds/60)}:${String(r.elapsed_seconds%60).padStart(2,'0')}</span></td>
+                <td>${r.flagged_cheating ? '<span class="badge flag">⚠️ Flagged</span>' : '<span class="badge ok">✅ Clear</span>'}</td>
+              </tr>
+            `;
+            });
+
+            area.innerHTML = `
+            <h3 style="margin-bottom:12px;">${icon} ${title}</h3>
+            <div style="overflow:auto;border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <table>
+                <thead>
+                  <tr><th>Rank</th><th>Participant</th><th>Stream</th><th>Score</th><th>Time</th><th>Status</th></tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+            <p class="muted" style="margin-top:10px;font-size:12px;text-align:center;">Showing ${arr.length} participant${arr.length > 1 ? 's' : ''}</p>
+          `;
+        }
+
+        async function adminLeaderboardEntry() {
+            appShell('<div class="card"><p class="muted">Loading…</p></div>', 'leaderboard');
+            const { data: quiz, error } = await sb.from('dq_quizzes').select('*').eq('quiz_date', today()).maybeSingle();
+            if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`,
+                'leaderboard'); return; }
+            if (!quiz) { appShell(
+                    `<div class="card center"><h2>No quiz today</h2><p class="muted">Nothing scheduled yet.</p></div>`,
+                    'leaderboard'); return; }
+            S.quiz = quiz;
+            renderLeaderboard();
+        }
+
+        /* ============================================================
+           PAST QUIZZES
+           ============================================================ */
+        async function pastQuizzes() {
+            const ses = loadSession();
+            const active = ses?.admin ? 'past' : 'past';
+            const { data, error } = await sb.from('dq_quizzes').select('id, quiz_date').lt('quiz_date', today()).order(
+                'quiz_date', { ascending: false });
+            if (error) return appShell('<div class="banner error">Error loading past quizzes.</div>', active);
+            if (!data || data.length === 0) return appShell(
+                '<div class="card"><h2>📚 Past Quizzes</h2><p class="muted" style="margin-top:6px">No past quizzes yet.</p></div>',
+                active);
+
+            let body = `<div class="card"><h2>📚 Past Quizzes</h2><div class="quiz-list" style="margin-top:12px">`;
+            for (const q of data) {
+                body +=
+                    `<button class="quiz-chip" onclick="viewPastQuiz('${q.id}')"><span class="d">📅 ${q.quiz_date}</span></button>`;
+            }
+            body += `</div><div id="pastDetail"></div></div>`;
+            appShell(body, active);
+        }
+
+        async function viewPastQuiz(quizId) {
+            const { data: quiz } = await sb.from('dq_quizzes').select('quiz_date').eq('id', quizId).single();
+            const { data: attempts, error } = await sb.from('dq_attempts').select('*, dq_users(username, stream)').eq(
+                'quiz_id', quizId);
+            if (error || !quiz) {
+                $('pastDetail').innerHTML = '<p class="muted">Could not load this quiz.</p>';
+                return;
+            }
+            window._lbRows = attempts;
+            const tabs = ['overall', 'science', 'commercial', 'art', 'maths', 'english', 'gk', 'stream'];
+            const tabLabels = {
+                overall: 'Overall',
+                science: 'Science',
+                commercial: 'Commercial',
+                art: 'Art',
+                maths: 'Mathematics',
+                english: 'English',
+                gk: 'General Knowledge',
+                stream: 'Stream Subject'
+            };
+            const container = $('pastDetail');
+            container.innerHTML = `
+            <div class="divider"></div>
+            <h3>📅 ${quiz.quiz_date}</h3>
+            <div class="flex" style="margin-top:10px">
+              ${tabs.map(t => `<button class="btn btn-secondary" onclick="renderLB('${t}')">${tabLabels[t]}</button>`).join('')}
+            </div>
+            <div id="lbArea" style="margin-top:14px"></div>
+          `;
+            renderLB('overall');
+        }
+
+        /* ============================================================
+           ADMIN — HOME
+           ============================================================ */
+        async function adminHome() {
+            const ses = loadSession();
+            if (!ses?.admin) return loginScreen();
+            appShell(`
+            <div class="card">
+              <h2>📅 Schedule a quiz</h2>
+              <p class="muted" style="margin:6px 0 12px">Create a quiz for today or set one up in advance — a new link appears for students automatically at midnight.</p>
+              <div class="flex" style="align-items:flex-end">
+                <div style="flex:1;min-width:200px"><input id="quizDate" type="date" value="${today()}" style="margin:0"></div>
+                <button class="btn btn-primary" onclick="createQuiz()">Create quiz</button>
+              </div>
+              <div id="createMsg"></div>
+            </div>
+            <div id="adminList"></div>
+            <div id="editor"></div>
+          `, 'dashboard');
+            loadAdminQuizzes();
+        }
+
+        async function createQuiz() {
+            const date = $('quizDate').value;
+            const msgEl = $('createMsg');
+            if (!date) return;
+            const { error } = await sb.from('dq_quizzes').insert({ quiz_date: date });
+            if (error) {
+                msgEl.innerHTML =
+                    `<div class="banner error">${error.code === '23505' ? 'A quiz already exists for that date.' : esc(error.message)}</div>`;
+                return;
+            }
+            msgEl.innerHTML = `<div class="banner success">✅ Quiz scheduled for ${date}.</div>`;
+            loadAdminQuizzes();
+        }
+
+        async function loadAdminQuizzes() {
+            const { data, error } = await sb.from('dq_quizzes').select('*').order('quiz_date', { ascending: false });
+            const container = $('adminList');
+            if (error) { container.innerHTML = `<div class="card"><div class="banner error">${esc(error.message)}</div></div>`; return; }
+            const t = today();
+            container.innerHTML = `
+            <div class="card">
+              <h2>📋 Scheduled quizzes</h2>
+              <div class="quiz-list" style="margin-top:12px">
+              ${data.map(q => `
+                <button class="quiz-chip ${q.quiz_date===t ? 'is-today' : (q.quiz_date < t ? 'is-past' : '')}" onclick="editQuiz(${q.id},'${q.quiz_date}')">
+                  <span class="d">📅 ${q.quiz_date}</span>
+                  <small>${q.quiz_date===t ? 'Today' : (q.quiz_date < t ? 'Past' : 'Upcoming')}</small>
+                </button>
+              `).join('') || '<p class="muted">No quizzes scheduled yet.</p>'}
+              </div>
+            </div>
+          `;
+        }
+
+        /* ============================================================
+           ADMIN — EDITOR with Bulk Parser
+           ============================================================ */
+        async function editQuiz(id, date) {
+            $('editor').innerHTML = '<div class="card"><p class="muted">Loading questions…</p></div>';
+            const { data: existing, error } = await sb.from('dq_questions').select('*').eq('quiz_id', id).order('id',
+            { ascending: true });
+            if (error) { $('editor').innerHTML =
+                `<div class="card"><div class="banner error">${esc(error.message)}</div></div>`; return; }
+
+            const bySubject = {};
+            (existing || []).forEach(q => { (bySubject[q.subject] ||= []).push(q); });
+
+            const subjects = ['maths', 'english', 'general_knowledge', 'science', 'commercial', 'art'];
+            let h = `
+            <div class="card">
+              <h2>✏️ Question editor — ${esc(date)}</h2>
+              <p class="muted" style="margin-top:6px">Each subject needs exactly 5 questions totalling 25 marks. Mathematics, English and General Knowledge are shared by every stream.</p>
+            </div>
+            <!-- BULK PARSER -->
+            <div class="card" style="border:2px solid var(--accent);background:var(--accent-light);">
+              <div class="top">
+                <h3 style="color:var(--primary);">📥 Bulk Question Importer</h3>
+                <span class="badge gold">NEW</span>
+              </div>
+              <p class="muted" style="font-size:13px;">Paste questions in the format below. The parser will detect subject, options, answer, and marks.</p>
+              <div style="background:var(--surface);padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:12.5px;font-family:monospace;margin:8px 0;">
+                Subject: Physics<br>
+                1. What is the SI unit of force?<br>
+                A) Joule<br>B) Newton<br>C) Watt<br>D) Pascal<br>
+                Answer: B<br>
+                Marks: 5
+              </div>
+              <label>Paste your questions here</label>
+              <textarea id="bulkInput" rows="8" placeholder="Subject: Physics&#10;1. What is the SI unit of force?&#10;A) Joule&#10;B) Newton&#10;C) Watt&#10;D) Pascal&#10;Answer: B&#10;Marks: 5"></textarea>
+              <div class="flex">
+                <button class="btn btn-secondary" onclick="previewBulk()">👁️ Preview</button>
+                <button class="btn btn-accent" onclick="saveBulk(${id})">💾 Import Questions</button>
+              </div>
+              <div id="bulkPreview"></div>
+              <div id="bulkMsg"></div>
+            </div>
+          `;
+
+            for (const subject of subjects) {
+                const qs = bySubject[subject] || [];
+                const total = qs.reduce((s, q) => s + Number(q.marks), 0);
+                const complete = qs.length === 5 && total === 25;
+                h += `<div class="card subject-box" id="box_${subject}">
+              <div class="top">
+                <h3>${subjectLabel(subject)}</h3>
+                <span class="badge ${complete ? 'ok' : 'pending'}">${complete ? '✅ Complete · 25/25' : (qs.length ? `${qs.length}/5 saved` : 'Not started')}</span>
+              </div>`;
+                for (let i = 1; i <= 5; i++) {
+                    const q = qs[i - 1];
+                    const opts = q ? (q.options || []) : [];
+                    const correctVal = q && q.correct_index !== null && q.correct_index !== undefined ? q.correct_index :
+                        '';
+                    h += `
+                <div class="card" style="background:var(--surface-2);box-shadow:none;border:1px solid var(--border);">
+                  <h3 style="margin-bottom:12px;font-size:14px;">Question ${i}</h3>
+                  <label>Question text</label>
+                  <textarea id="q_${subject}_${i}" placeholder="Type the question here...">${q ? esc(q.question) : ''}</textarea>
+                  <label>Option A</label>
+                  <input id="oa_${subject}_${i}" placeholder="Option A" value="${esc(opts[0] || '')}">
+                  <label>Option B</label>
+                  <input id="ob_${subject}_${i}" placeholder="Option B" value="${esc(opts[1] || '')}">
+                  <label>Option C</label>
+                  <input id="oc_${subject}_${i}" placeholder="Option C" value="${esc(opts[2] || '')}">
+                  <label>Option D</label>
+                  <input id="od_${subject}_${i}" placeholder="Option D" value="${esc(opts[3] || '')}">
+                  <div class="qrow">
+                    <div style="flex:1">
+                      <label>Correct answer</label>
+                      <select id="c_${subject}_${i}">
+                        <option value="">Select</option>
+                        <option value="0" ${correctVal===0?'selected':''}>A</option>
+                        <option value="1" ${correctVal===1?'selected':''}>B</option>
+                        <option value="2" ${correctVal===2?'selected':''}>C</option>
+                        <option value="3" ${correctVal===3?'selected':''}>D</option>
+                      </select>
+                    </div>
+                    <div style="flex:1">
+                      <label>Marks</label>
+                      <input id="m_${subject}_${i}" type="number" min="1" max="25" placeholder="Marks" value="${q ? q.marks : ''}" oninput="updateTotal('${subject}')">
+                    </div>
+                  </div>
+                </div>
+              `;
+                }
+                h += `
+                <div class="top" style="margin-top:4px">
+                  <span class="muted" id="total_${subject}"></span>
+                  <button class="btn btn-primary" id="savebtn_${subject}" onclick="saveSubject(${id},'${subject}')">💾 Save ${subjectLabel(subject)}</button>
+                </div>
+                <div id="msg_${subject}"></div>
+              </div>`;
+            }
+            $('editor').innerHTML = h;
+            subjects.forEach(updateTotal);
+        }
+
+        function updateTotal(subject) {
+            let total = 0;
+            for (let i = 1; i <= 5; i++) {
+                total += Number($(`m_${subject}_${i}`)?.value || 0);
+            }
+            const el = $(`total_${subject}`);
+            const btn = $(`savebtn_${subject}`);
+            if (el) {
+                if (total > 25) {
+                    el.innerHTML = `Running total: <b class="bad">${total}/25 — exceeds by ${total - 25}</b>`;
+                } else if (total === 25) {
+                    el.innerHTML = `Running total: <b class="good">${total}/25 — ready</b>`;
+                } else {
+                    el.innerHTML = `Running total: <b class="bad">${total}/25 — ${25 - total} mark(s) remaining</b>`;
+                }
+            }
+            if (btn) btn.disabled = total > 25;
+        }
+
+        async function saveSubject(quizId, subject) {
+            const msgEl = $(`msg_${subject}`);
+            try {
+                let items = [];
+                let total = 0;
+                for (let i = 1; i <= 5; i++) {
+                    const question = $(`q_${subject}_${i}`).value.trim();
+                    const options = [
+                        $(`oa_${subject}_${i}`).value.trim(),
+                        $(`ob_${subject}_${i}`).value.trim(),
+                        $(`oc_${subject}_${i}`).value.trim(),
+                        $(`od_${subject}_${i}`).value.trim()
+                    ];
+                    const correctRaw = $(`c_${subject}_${i}`).value;
+                    const correct = Number(correctRaw);
+                    const marks = Number($(`m_${subject}_${i}`).value);
+                    if (!question) throw new Error(`Question ${i} needs question text.`);
+                    if (options.some(x => !x)) throw new Error(`Question ${i} needs all four options filled in.`);
+                    if (correctRaw === '' || !Number.isInteger(correct) || correct < 0 || correct > 3) throw new Error(
+                        `Question ${i} needs a correct answer selected.`);
+                    if (!marks || marks <= 0) throw new Error(`Question ${i} needs marks greater than 0.`);
+                    total += marks;
+                    items.push({ quiz_id: quizId, subject, question, options, correct_index: correct, marks });
+                }
+                if (total > 25) throw new Error(`${subjectLabel(subject)} exceeds the 25-mark limit — currently ${total}.`);
+                if (total !== 25) throw new Error(`${subjectLabel(subject)} must total exactly 25 marks — currently ${total}.`);
+
+                const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject',
+                    subject);
+                if (delError) throw delError;
+                const { error } = await sb.from('dq_questions').insert(items);
+                if (error) throw error;
+
+                msgEl.innerHTML = `<div class="banner success">✅ Saved — 25/25 marks.</div>`;
+                const box = $(`box_${subject}`);
+                const badge = box.querySelector('.badge');
+                badge.textContent = '✅ Complete · 25/25';
+                badge.className = 'badge ok';
+            } catch (e) {
+                msgEl.innerHTML = `<div class="banner error">${esc(e.message)}</div>`;
+            }
+        }
+
+        /* ============================================================
+           BULK PARSER
+           ============================================================ */
+        function parseBulkQuestions(text) {
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const result = [];
+            let currentSubject = null;
+            let currentQuestion = null;
+            let currentOptions = [];
+            let currentAnswer = null;
+            let currentMarks = null;
+            let i = 0;
+
+            while (i < lines.length) {
+                const line = lines[i];
+
+                // Subject: ...
+                const subjectMatch = line.match(/^Subject\s*[:=]\s*(.+)/i);
+                if (subjectMatch) {
+                    currentSubject = subjectMatch[1].trim().toLowerCase();
+                    // Map to valid subject
+                    const validSubjects = ['maths', 'english', 'general_knowledge', 'science', 'commercial', 'art'];
+                    const mapped = {
+                        'mathematics': 'maths',
+                        'math': 'maths',
+                        'gk': 'general_knowledge',
+                        'general': 'general_knowledge',
+                        'general knowledge': 'general_knowledge'
+                    };
+                    if (mapped[currentSubject]) currentSubject = mapped[currentSubject];
+                    if (!validSubjects.includes(currentSubject)) currentSubject = null;
+                    i++;
+                    continue;
+                }
+
+                // Question number: 1. or 1) or 1.
+                const qMatch = line.match(/^(\d+)[\.\)]\s*(.+)/);
+                if (qMatch) {
+                    // Save previous question if any
+                    if (currentQuestion !== null && currentOptions.length === 4 && currentAnswer !== null) {
+                        result.push({
+                            subject: currentSubject || 'general_knowledge',
+                            question: currentQuestion,
+                            options: currentOptions,
+                            correct_index: ['A', 'B', 'C', 'D'].indexOf(currentAnswer.toUpperCase()),
+                            marks: currentMarks || 5
+                        });
+                    }
+                    currentQuestion = qMatch[2].trim();
+                    currentOptions = [];
+                    currentAnswer = null;
+                    currentMarks = null;
+                    i++;
+                    continue;
+                }
+
+                // Option: A) ... or A. ...
+                const optMatch = line.match(/^([A-D])[\.\)]\s*(.+)/);
+                if (optMatch && currentQuestion !== null) {
+                    currentOptions.push(optMatch[2].trim());
+                    i++;
+                    continue;
+                }
+
+                // Answer: X
+                const ansMatch = line.match(/^Answer\s*[:=]\s*([A-D])/i);
+                if (ansMatch && currentQuestion !== null) {
+                    currentAnswer = ansMatch[1].toUpperCase();
+                    i++;
+                    continue;
+                }
+
+                // Marks: X
+                const marksMatch = line.match(/^Marks?\s*[:=]\s*(\d+)/i);
+                if (marksMatch && currentQuestion !== null) {
+                    currentMarks = parseInt(marksMatch[1]);
+                    i++;
+                    continue;
+                }
+
+                // If it's a plain line and we have a current question, it might be a continuation
+                if (currentQuestion !== null && currentOptions.length < 4) {
+                    // It could be a multi-line question
+                    if (currentOptions.length === 0) {
+                        currentQuestion += ' ' + line;
+                    } else {
+                        // If we already have options, this line might be a question continuation
+                        // but more likely it's malformed — we'll skip
+                    }
+                    i++;
+                    continue;
+                }
+
+                i++;
+            }
+
+            // Save the last question
+            if (currentQuestion !== null && currentOptions.length === 4 && currentAnswer !== null) {
+                result.push({
+                    subject: currentSubject || 'general_knowledge',
+                    question: currentQuestion,
+                    options: currentOptions,
+                    correct_index: ['A', 'B', 'C', 'D'].indexOf(currentAnswer.toUpperCase()),
+                    marks: currentMarks || 5
+                });
+            }
+
+            return result;
+        }
+
+        function previewBulk() {
+            const input = $('bulkInput');
+            const preview = $('bulkPreview');
+            if (!input || !preview) return;
+            const text = input.value;
+            const parsed = parseBulkQuestions(text);
+
+            if (parsed.length === 0) {
+                preview.innerHTML = `<div class="banner warn">No questions could be parsed. Check the format.</div>`;
+                return;
+            }
+
+            // Group by subject and check totals
+            const bySubject = {};
+            parsed.forEach(q => {
+                const s = q.subject;
+                if (!bySubject[s]) bySubject[s] = [];
+                bySubject[s].push(q);
+            });
+
+            let html = `<div class="divider"></div><h3>📋 Preview (${parsed.length} questions)</h3>`;
+            html += `<div class="preview-table-wrap"><table>
+            <thead><tr><th>#</th><th>Subject</th><th>Question</th><th>Options</th><th>Answer</th><th>Marks</th></tr></thead>
+            <tbody>`;
+            parsed.forEach((q, idx) => {
+                const ans = ['A', 'B', 'C', 'D'][q.correct_index] || '?';
+                const optsStr = q.options.map((o, j) => `${['A','B','C','D'][j]}) ${o}`).join(' &nbsp;|&nbsp; ');
+                html += `<tr>
+              <td>${idx+1}</td>
+              <td><span class="badge pending">${esc(subjectLabel(q.subject))}</span></td>
+              <td style="max-width:200px;word-break:break-word;">${esc(q.question)}</td>
+              <td style="font-size:12px;max-width:240px;">${esc(optsStr)}</td>
+              <td><strong>${ans}</strong></td>
+              <td>${q.marks}</td>
+            </tr>`;
+            });
+            html += `</tbody></table></div>`;
+
+            // Show subject totals
+            html += `<div class="flex" style="margin-top:10px;gap:8px;">`;
+            for (const [s, qs] of Object.entries(bySubject)) {
+                const total = qs.reduce((sum, q) => sum + q.marks, 0);
+                const ok = total === 25 && qs.length === 5;
+                html += `<span class="pill ${ok ? 'gold' : ''}">${esc(subjectLabel(s))}: ${total}/25 ${ok ? '✅' : '⚠️'}</span>`;
+            }
+            html += `</div>`;
+            preview.innerHTML = html;
+        }
+
+        async function saveBulk(quizId) {
+            const input = $('bulkInput');
+            const msg = $('bulkMsg');
+            if (!input || !msg) return;
+            const text = input.value;
+            const parsed = parseBulkQuestions(text);
+
+            if (parsed.length === 0) {
+                msg.innerHTML = `<div class="banner error">No questions to import. Please check the format.</div>`;
+                return;
+            }
+
+            // Group by subject and validate totals
+            const bySubject = {};
+            parsed.forEach(q => {
+                const s = q.subject;
+                if (!bySubject[s]) bySubject[s] = [];
+                bySubject[s].push(q);
+            });
+
+            // Check that each subject has exactly 5 questions and totals 25 marks
+            for (const [s, qs] of Object.entries(bySubject)) {
+                const total = qs.reduce((sum, q) => sum + q.marks, 0);
+                if (qs.length !== 5) {
+                    msg.innerHTML =
+                        `<div class="banner error">${subjectLabel(s)} has ${qs.length} questions — needs exactly 5.</div>`;
+                    return;
+                }
+                if (total !== 25) {
+                    msg.innerHTML =
+                        `<div class="banner error">${subjectLabel(s)} totals ${total} marks — needs exactly 25.</div>`;
+                    return;
+                }
+            }
+
+            // Save each subject
+            try {
+                for (const [s, qs] of Object.entries(bySubject)) {
+                    // Delete existing questions for this subject
+                    const { error: delError } = await sb.from('dq_questions').delete().eq('quiz_id', quizId).eq('subject',
+                        s);
+                    if (delError) throw delError;
+
+                    const items = qs.map(q => ({
+                        quiz_id: quizId,
+                        subject: s,
+                        question: q.question,
+                        options: q.options,
+                        correct_index: q.correct_index,
+                        marks: q.marks
+                    }));
+                    const { error } = await sb.from('dq_questions').insert(items);
+                    if (error) throw error;
+                }
+
+                msg.innerHTML = `<div class="banner success">✅ Successfully imported ${parsed.length} questions across ${Object.keys(bySubject).length} subject(s).</div>`;
+                // Refresh the editor
+                editQuiz(quizId, S.quiz?.quiz_date || today());
+            } catch (e) {
+                msg.innerHTML = `<div class="banner error">${esc(e.message)}</div>`;
+            }
+        }
+
+        /* ============================================================
+           ADMIN — USERS
+           ============================================================ */
+        async function adminUsers() {
+            appShell('<div class="card"><p class="muted">Loading users…</p></div>', 'users');
+            const { data, error } = await sb.from('dq_users').select('*').order('username', { ascending: true });
+            if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`,
+                'users'); return; }
+
+            const streamCounts = { science: 0, commercial: 0, art: 0 };
+            (data || []).forEach(u => { if (streamCounts[u.stream] !== undefined) streamCounts[u.stream]++; });
+
+            const body = `
+            <div class="card">
+              <div class="top">
+                <h2>👥 All participants</h2>
+                <span class="pill gold">${(data || []).length} total</span>
+              </div>
+              <p class="muted">Every registered user, new and old.</p>
+              <div class="flex" style="margin-top:10px">
+                <span class="pill">🔬 Science &middot; ${streamCounts.science}</span>
+                <span class="pill">📊 Commercial &middot; ${streamCounts.commercial}</span>
+                <span class="pill">🎨 Art &middot; ${streamCounts.art}</span>
+              </div>
+              <div style="overflow:auto;margin-top:16px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <table>
+                  <thead><tr><th>#</th><th>Username</th><th>Stream</th><th>Security question</th><th>Joined</th></tr></thead>
+                  <tbody>
+                  ${(data || []).map((u, i) => `
+                    <tr>
+                      <td>${i + 1}</td>
+                      <td><strong>${esc(u.username)}</strong></td>
+                      <td><span class="pill" style="font-size:11px;padding:2px 10px;">${esc(subjectLabel(u.stream))}</span></td>
+                      <td>${esc(u.security_question || '—')}</td>
+                      <td class="muted" style="font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                    </tr>
+                  `).join('') || `<tr><td colspan="5" class="muted">No users yet.</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+            appShell(body, 'users');
+        }
+
+        /* ============================================================
+           COUNTDOWN UPDATER
+           ============================================================ */
+        function startCountdownUpdater() {
+            // Update any countdown displays every second
+            setInterval(() => {
+                const displays = document.querySelectorAll('.countdown-display');
+                if (displays.length === 0) return;
+                const st = quizStatus();
+                let sec = 0;
+                let label = '';
+                if (st === 'before') {
+                    sec = secondsUntilNoon();
+                    label = 'Time until quiz opens';
+                } else if (st === 'open') {
+                    sec = secondsUntilSix();
+                    label = 'Time remaining to start';
+                } else if (st === 'closed') {
+                    const now = new Date();
+                    const target = new Date(now);
+                    target.setHours(18, 30, 0, 0);
+                    sec = Math.floor((target - now) / 1000);
+                    if (sec < 0) sec = 0;
+                    label = 'Time until leaderboard reveal';
+                } else {
+                    return;
+                }
+                const formatted = formatCountdown(sec);
+                displays.forEach(el => {
+                    const labelSpan = el.querySelector('.label');
+                    if (labelSpan) labelSpan.textContent = label;
+                    // Update the text content while preserving the label
+                    const existingLabel = el.querySelector('.label');
+                    if (existingLabel) {
+                        el.innerHTML = `<span class="label">${label}</span>${formatted}`;
+                    } else {
+                        el.textContent = formatted;
+                    }
+                });
+            }, 1000);
+        }
+
+        /* ============================================================
+           BOOT
+           ============================================================ */
+        const session = loadSession();
+        if (session?.admin) adminHome();
+        else if (session?.id) studentHome();
+        else loginScreen();
+
+        // Start countdown updater
+        startCountdownUpdater();
+    </script>
 </body>
 </html>
