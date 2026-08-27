@@ -38,6 +38,67 @@
             --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        [data-theme="dark"] {
+            --bg: #14101c;
+            --surface: #1e1830;
+            --surface-2: #251d3a;
+            --border: #362a52;
+            --ink: #f0ecf7;
+            --muted: #a598b8;
+            --primary: #d4a84b;
+            --primary-2: #e0ba63;
+            --primary-3: #ecc97c;
+            --accent: #d4a84b;
+            --accent-2: #c4963a;
+            --accent-light: #3d3220;
+            --accent-glow: rgba(212, 168, 75, 0.25);
+            --success: #4fce8e;
+            --success-bg: #163829;
+            --danger: #e0776d;
+            --danger-bg: #3a2020;
+            --warn: #e0c169;
+            --warn-bg: #3a3220;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .calc-fab {
+            position: fixed; bottom: 20px; right: 20px; z-index: 999;
+            width: 52px; height: 52px; border-radius: 50%;
+            background: var(--primary); color: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; border: none; cursor: pointer; box-shadow: var(--shadow-md);
+        }
+        [data-theme="dark"] .calc-fab { color: var(--surface); }
+        .calc-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .calc-box {
+            background: var(--surface); border-radius: var(--radius); padding: 18px;
+            width: 280px; box-shadow: var(--shadow-lg);
+        }
+        .calc-display {
+            background: var(--surface-2); border-radius: var(--radius-sm); padding: 14px;
+            text-align: right; font-family: 'Space Mono', monospace; font-size: 24px;
+            margin-bottom: 12px; color: var(--ink); overflow-x: auto; white-space: nowrap;
+        }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .calc-grid button {
+            padding: 14px 0; border-radius: var(--radius-sm); border: 1px solid var(--border);
+            background: var(--surface-2); color: var(--ink); font-size: 16px; font-weight: 600;
+            cursor: pointer;
+        }
+        .calc-grid button.op { background: var(--primary); color: var(--bg); }
+        [data-theme="dark"] .calc-grid button.op { color: var(--surface); }
+        .calc-close { text-align: right; margin-bottom: 8px; }
+        .calc-close button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); }
+        .theme-toggle {
+            background: none; border: 1px solid var(--border); color: inherit;
+            border-radius: 999px; width: 36px; height: 36px; cursor: pointer; font-size: 16px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -1050,7 +1111,13 @@
         const $ = id => document.getElementById(id);
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
             "'": '&#39;' }[c]));
-        const today = () => new Date().toISOString().slice(0, 10);
+        const today = () => {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
         const localMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
         const localSeconds = () => { const d = new Date(); return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds(); };
         const sha256 = async text => {
@@ -1116,6 +1183,24 @@
             const s = sec % 60;
             if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
             return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        function isEarlyRevealWindow() {
+            const m = localMinutes();
+            return m >= 780 && m < 810; // 1:00 PM – 1:30 PM
+        }
+
+        function ordinal(n) {
+            const s = ["th", "st", "nd", "rd"], v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        async function computeRank(quizId, userId) {
+            const { data: rows } = await sb.from('dq_attempts').select('user_id, score, elapsed_seconds').eq('quiz_id', quizId);
+            if (!rows || !rows.length) return null;
+            const sorted = rows.slice().sort((a, b) => (b.score - a.score) || (a.elapsed_seconds - b.elapsed_seconds));
+            const idx = sorted.findIndex(r => r.user_id === userId);
+            return idx === -1 ? null : { rank: idx + 1, total: sorted.length };
         }
 
         /* ============================================================
@@ -1323,6 +1408,7 @@
                     <div class="who">${brandWho}</div>
                   </div>
                 </div>
+                <button class="theme-toggle no-print" onclick="toggleTheme()" title="Toggle theme">${localStorage.getItem('dq_theme') === 'dark' ? '☀️' : '🌙'}</button>
                 <button class="btn btn-ghost" onclick="logout()">Log out</button>
               </div>
             </div>
@@ -1336,7 +1422,86 @@
               </div>
             </div>
             <div class="content">${body}</div>
+            <button class="calc-fab no-print" onclick="openCalc()" title="Calculator">🧮</button>
           `);
+        }
+
+        /* ============================================================
+           THEME (light / dark)
+           ============================================================ */
+        function applyStoredTheme() {
+            const t = localStorage.getItem('dq_theme') || 'light';
+            if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            localStorage.setItem('dq_theme', isDark ? 'light' : 'dark');
+            applyStoredTheme();
+            const btn = document.querySelector('.theme-toggle');
+            if (btn) btn.textContent = isDark ? '🌙' : '☀️';
+        }
+
+        /* ============================================================
+           CALCULATOR (floating widget)
+           ============================================================ */
+        let calcExpr = '';
+        function openCalc() {
+            calcExpr = '';
+            const overlay = document.createElement('div');
+            overlay.className = 'calc-overlay no-print';
+            overlay.id = 'calcOverlay';
+            overlay.onclick = (e) => { if (e.target.id === 'calcOverlay') closeCalc(); };
+            overlay.innerHTML = `
+            <div class="calc-box" onclick="event.stopPropagation()">
+              <div class="calc-close"><button onclick="closeCalc()">✕</button></div>
+              <div class="calc-display" id="calcDisplay">0</div>
+              <div class="calc-grid">
+                <button onclick="calcInput('C')">C</button>
+                <button onclick="calcInput('(')">(</button>
+                <button onclick="calcInput(')')">)</button>
+                <button class="op" onclick="calcInput('/')">÷</button>
+                <button onclick="calcInput('7')">7</button>
+                <button onclick="calcInput('8')">8</button>
+                <button onclick="calcInput('9')">9</button>
+                <button class="op" onclick="calcInput('*')">×</button>
+                <button onclick="calcInput('4')">4</button>
+                <button onclick="calcInput('5')">5</button>
+                <button onclick="calcInput('6')">6</button>
+                <button class="op" onclick="calcInput('-')">−</button>
+                <button onclick="calcInput('1')">1</button>
+                <button onclick="calcInput('2')">2</button>
+                <button onclick="calcInput('3')">3</button>
+                <button class="op" onclick="calcInput('+')">+</button>
+                <button onclick="calcInput('0')">0</button>
+                <button onclick="calcInput('.')">.</button>
+                <button onclick="calcInput('back')">⌫</button>
+                <button class="op" onclick="calcInput('=')">=</button>
+              </div>
+            </div>
+          `;
+            document.body.appendChild(overlay);
+        }
+
+        function closeCalc() {
+            const overlay = document.getElementById('calcOverlay');
+            if (overlay) overlay.remove();
+        }
+
+        function calcInput(v) {
+            const display = document.getElementById('calcDisplay');
+            if (v === 'C') { calcExpr = ''; }
+            else if (v === 'back') { calcExpr = calcExpr.slice(0, -1); }
+            else if (v === '=') {
+                try {
+                    if (!/^[0-9+\-*/().\s]+$/.test(calcExpr)) throw new Error('bad');
+                    calcExpr = String(Function(`"use strict"; return (${calcExpr || 0})`)());
+                } catch { calcExpr = 'Error'; }
+            } else {
+                calcExpr += v;
+            }
+            display.textContent = calcExpr || '0';
         }
 
         /* ============================================================
@@ -1367,18 +1532,24 @@
             // If already attempted
             if (attempt) {
                 const scorePrefKey = `dq_score_pref_${ses.id}_${quiz.id}`;
-                const showScore = st === 'reveal' ? true : localStorage.getItem(scorePrefKey) === 'show';
+                const early = isEarlyRevealWindow();
+                const showScore = st === 'reveal' ? true : (early && localStorage.getItem(scorePrefKey) === 'show');
                 const maxScore = 100;
                 const scorePct = Math.round((Number(attempt.score || 0) / maxScore) * 100);
-                return appShell(`
-              <div class="card center">
-                <div class="banner success" style="display:inline-block">✅ You have successfully completed this quiz.</div>
-                <p class="muted" style="margin-top:10px">${st === 'reveal' ? 'The leaderboard is live — check the <b>Leaderboard</b> tab too.' : 'The <b>leaderboard remains locked until exactly 6:30 PM</b>.'}</p>
-                ${showScore ? `
+                let rankLine = '';
+                if (showScore) {
+                    const r = await computeRank(quiz.id, ses.id);
+                    if (r) rankLine = `<div class="muted" style="margin-top:6px">You ranked <b>${ordinal(r.rank)}</b> out of ${r.total} participant${r.total > 1 ? 's' : ''}</div>`;
+                }
+
+                let statusBlock;
+                if (showScore) {
+                    statusBlock = `
                   <div class="card" style="margin-top:16px;background:var(--accent-light);border:1px solid var(--accent);">
                     <div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;">Your score</div>
                     <div style="font-size:42px;font-weight:900;color:var(--primary);margin:4px 0;">${scorePct}%</div>
                     <div class="muted">${Number(attempt.score || 0)} / 100 marks</div>
+                    ${rankLine}
                     <div style="overflow:auto;margin-top:14px">
                       <table>
                         <tr><th>Subject</th><th>Marks</th></tr>
@@ -1389,15 +1560,40 @@
                       </table>
                     </div>
                   </div>
-                  ${st === 'reveal' ? '' : `<button class="btn btn-secondary" style="margin-top:12px" onclick="setScorePreference('hide', ${quiz.id})">🔒 Hide my score until 6:30 PM</button>`}
-                ` : `
+                  ${(st === 'reveal' || !early) ? '' : `<button class="btn btn-secondary" style="margin-top:12px" onclick="setScorePreference('hide', ${quiz.id})">🔒 Hide my score until 6:30 PM</button>`}
+                `;
+                } else if (early) {
+                    statusBlock = `
                   <div class="card" style="margin-top:16px;">
                     <div style="font-size:30px;margin-bottom:6px;">🔒</div>
                     <h3>Score hidden</h3>
-                    <p class="muted" style="margin-top:6px">You chose to wait until 6:30 PM.</p>
+                    <p class="muted" style="margin-top:6px">You can preview it now, or wait until 6:30 PM.</p>
                   </div>
                   <button class="btn btn-gold" style="margin-top:12px" onclick="setScorePreference('show', ${quiz.id})">👁️ Show my score now</button>
-                `}
+                `;
+                } else if (localMinutes() < 780) {
+                    statusBlock = `
+                  <div class="card" style="margin-top:16px;">
+                    <div style="font-size:30px;margin-bottom:6px;">🔒</div>
+                    <h3>Score hidden</h3>
+                    <p class="muted" style="margin-top:6px">You'll be able to preview your score between <b>1:00 PM and 1:30 PM</b>, or it will be revealed automatically at <b>6:30 PM</b>.</p>
+                  </div>
+                `;
+                } else {
+                    statusBlock = `
+                  <div class="card" style="margin-top:16px;">
+                    <div style="font-size:30px;margin-bottom:6px;">🔒</div>
+                    <h3>Score hidden</h3>
+                    <p class="muted" style="margin-top:6px">The early preview window has closed. Your score will be revealed automatically at <b>6:30 PM</b>.</p>
+                  </div>
+                `;
+                }
+
+                return appShell(`
+              <div class="card center">
+                <div class="banner success" style="display:inline-block">✅ You have successfully completed this quiz.</div>
+                <p class="muted" style="margin-top:10px">${st === 'reveal' ? 'The leaderboard is live — check the <b>Leaderboard</b> tab too.' : 'The <b>leaderboard remains locked until exactly 6:30 PM</b>.'}</p>
+                ${statusBlock}
               </div>
             `, 'dashboard');
             }
@@ -1405,7 +1601,7 @@
             // Before 12:00 — countdown to noon
             if (st === 'before') {
                 const sec = secondsUntilNoon();
-                return appShell(`
+                appShell(`
               <div class="card center start-screen">
                 <div class="big-icon">⏳</div>
                 <h2>Quiz opens at 12:00 PM</h2>
@@ -1416,6 +1612,7 @@
                 </div>
               </div>
             `, 'dashboard');
+                return;
             }
 
             // Closed window (18:00 – 18:29)
@@ -1431,12 +1628,12 @@
             // Open — show Start Exam button with countdown to 6:00 PM
             if (st === 'open') {
                 const sec = secondsUntilSix();
-                return appShell(`
+                appShell(`
               <div class="card center start-screen">
                 <div class="big-icon">📝</div>
                 <h2>Today's quiz is ready</h2>
                 <p class="desc">You have 10 minutes to answer 20 questions. Once you start, the timer begins — no pauses!</p>
-                <div class="countdown-display" style="margin-bottom:20px;font-size:28px;padding:12px 24px;">
+                <div class="countdown-display" id="countdownDisplay" style="margin-bottom:20px;font-size:28px;padding:12px 24px;">
                   <span class="label">Time remaining to start</span>
                   ${formatCountdown(sec)}
                 </div>
@@ -1446,6 +1643,7 @@
                 <p class="muted" style="margin-top:12px;font-size:12px;">You can only attempt this quiz once.</p>
               </div>
             `, 'dashboard');
+                return;
             }
 
             // Reveal — leaderboard
@@ -1700,30 +1898,26 @@
            LEADERBOARD — only reveal after 6:30 PM for students
            ============================================================ */
         async function leaderboardPage() {
-            const ses = loadSession();
-            if (!ses || ses.admin) {
-                // admin can always see
-                return renderLeaderboard();
-            }
             const st = quizStatus();
             if (st !== 'reveal') {
-                // Countdown to 6:30 PM
+                // Countdown to 6:30 PM — applies to admin and students alike
                 const now = new Date();
                 const target = new Date(now);
                 target.setHours(18, 30, 0, 0);
                 let sec = Math.floor((target - now) / 1000);
                 if (sec < 0) sec = 0;
-                return appShell(`
+                appShell(`
               <div class="card center quiz-locked">
                 <div class="lock-icon">🔒</div>
                 <h2>Leaderboard locked</h2>
                 <p class="muted" style="margin-top:6px">The leaderboard will be revealed at <b>6:30 PM</b>.</p>
-                <div class="countdown-display" style="margin-top:16px;font-size:28px;padding:12px 24px;">
+                <div class="countdown-display" id="lbLockCountdown" style="margin-top:16px;font-size:28px;padding:12px 24px;">
                   <span class="label">Time until reveal</span>
                   ${formatCountdown(sec)}
                 </div>
               </div>
             `, 'leaderboard');
+                return;
             }
             return renderLeaderboard();
         }
@@ -1874,7 +2068,7 @@
                     `<div class="card center"><h2>No quiz today</h2><p class="muted">Nothing scheduled yet.</p></div>`,
                     'leaderboard'); return; }
             S.quiz = quiz;
-            renderLeaderboard();
+            leaderboardPage();
         }
 
         /* ============================================================
@@ -2482,47 +2676,39 @@
            COUNTDOWN UPDATER
            ============================================================ */
         function startCountdownUpdater() {
-            // Update any countdown displays every second
+            // Update dashboard + leaderboard countdown displays every second
             setInterval(() => {
-                const displays = document.querySelectorAll('.countdown-display');
-                if (displays.length === 0) return;
                 const st = quizStatus();
-                let sec = 0;
-                let label = '';
-                if (st === 'before') {
-                    sec = secondsUntilNoon();
-                    label = 'Time until quiz opens';
-                } else if (st === 'open') {
-                    sec = secondsUntilSix();
-                    label = 'Time remaining to start';
-                } else if (st === 'closed') {
+
+                // Dashboard "before / open" countdown
+                const dashEl = document.getElementById('countdownDisplay');
+                if (dashEl) {
+                    let sec = null, label = '';
+                    if (st === 'before') { sec = secondsUntilNoon(); label = 'Time until quiz opens'; }
+                    else if (st === 'open') { sec = secondsUntilSix(); label = 'Time remaining to start'; }
+                    if (sec !== null) {
+                        dashEl.innerHTML = `<span class="label">${label}</span>${formatCountdown(sec)}`;
+                        if (sec <= 0) studentHome();
+                    }
+                }
+
+                // Leaderboard lock countdown — always counts down to 6:30 PM regardless of before/open/closed
+                const lbEl = document.getElementById('lbLockCountdown');
+                if (lbEl && st !== 'reveal') {
                     const now = new Date();
                     const target = new Date(now);
                     target.setHours(18, 30, 0, 0);
-                    sec = Math.floor((target - now) / 1000);
-                    if (sec < 0) sec = 0;
-                    label = 'Time until leaderboard reveal';
-                } else {
-                    return;
+                    const sec = Math.max(0, Math.floor((target - now) / 1000));
+                    lbEl.innerHTML = `<span class="label">Time until reveal</span>${formatCountdown(sec)}`;
+                    if (sec <= 0) leaderboardPage();
                 }
-                const formatted = formatCountdown(sec);
-                displays.forEach(el => {
-                    const labelSpan = el.querySelector('.label');
-                    if (labelSpan) labelSpan.textContent = label;
-                    // Update the text content while preserving the label
-                    const existingLabel = el.querySelector('.label');
-                    if (existingLabel) {
-                        el.innerHTML = `<span class="label">${label}</span>${formatted}`;
-                    } else {
-                        el.textContent = formatted;
-                    }
-                });
             }, 1000);
         }
 
         /* ============================================================
            BOOT
            ============================================================ */
+        applyStoredTheme();
         const session = loadSession();
         if (session?.admin) adminHome();
         else if (session?.id) studentHome();
