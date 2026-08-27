@@ -1353,10 +1353,29 @@
             // If already attempted
             if (attempt) {
                 if (st === 'reveal') return leaderboardPage();
+                const scorePrefKey = `dq_score_pref_${ses.id}_${quiz.id}`;
+                const showScore = localStorage.getItem(scorePrefKey) === 'show';
+                const maxScore = 100;
+                const scorePct = Math.round((Number(attempt.score || 0) / maxScore) * 100);
                 return appShell(`
               <div class="card center">
-                <div class="banner success" style="display:inline-block">You have successfully completed this quiz.</div>
-                <p class="muted" style="margin-top:10px">Check your score and the leaderboard at <b>6:30 PM</b>.</p>
+                <div class="banner success" style="display:inline-block">✅ You have successfully completed this quiz.</div>
+                <p class="muted" style="margin-top:10px">The <b>leaderboard remains locked until exactly 6:30 PM</b>.</p>
+                ${showScore ? `
+                  <div class="card" style="margin-top:16px;background:var(--accent-light);border:1px solid var(--accent);">
+                    <div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;">Your score</div>
+                    <div style="font-size:42px;font-weight:900;color:var(--primary);margin:4px 0;">${scorePct}%</div>
+                    <div class="muted">${Number(attempt.score || 0)} / 100 marks</div>
+                  </div>
+                  <button class="btn btn-secondary" style="margin-top:12px" onclick="setScorePreference('hide', ${quiz.id})">🔒 Hide my score until 6:30 PM</button>
+                ` : `
+                  <div class="card" style="margin-top:16px;">
+                    <div style="font-size:30px;margin-bottom:6px;">🔒</div>
+                    <h3>Score hidden</h3>
+                    <p class="muted" style="margin-top:6px">You chose to wait until 6:30 PM.</p>
+                  </div>
+                  <button class="btn btn-gold" style="margin-top:12px" onclick="setScorePreference('show', ${quiz.id})">👁️ Show my score now</button>
+                `}
               </div>
             `, 'dashboard');
             }
@@ -1632,14 +1651,27 @@
                 appShell(`<div class="banner error">${esc(error.message)}</div>`, 'dashboard');
                 return;
             }
+            const scorePrefKey = `dq_score_pref_${S.user.id}_${S.quiz.id}`;
+            const scorePct = Math.round((total / 100) * 100);
             appShell(`
             <div class="card center">
               <h2>✅ Quiz completed</h2>
               <div class="banner success" style="display:inline-block;margin-top:10px">You have successfully completed this quiz.</div>
-              <p class="muted" style="margin-top:10px">Your score is hidden until <b>6:30 PM</b>. Check the Leaderboard tab then.</p>
+              <p class="muted" style="margin-top:10px">Your <b>score</b> can be shown now or kept hidden. The <b>leaderboard is locked until exactly 6:30 PM</b> no matter what you choose.</p>
+              <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+                <button class="btn btn-gold" onclick="setScorePreference('show', ${S.quiz.id})">👁️ Show my score now</button>
+                <button class="btn btn-secondary" onclick="setScorePreference('hide', ${S.quiz.id})">🔒 Hide until 6:30 PM</button>
+              </div>
               ${flag ? '<div class="banner error" style="margin-top:10px">⚠️ Your attempt has been flagged for leaving the quiz tab too many times.</div>' : ''}
             </div>
           `, 'dashboard');
+        }
+
+        function setScorePreference(pref, quizId) {
+            const ses = loadSession();
+            if (!ses || ses.admin) return;
+            localStorage.setItem(`dq_score_pref_${ses.id}_${quizId}`, pref);
+            studentHome();
         }
 
         /* ============================================================
@@ -2340,7 +2372,7 @@
            ============================================================ */
         async function adminUsers() {
             appShell('<div class="card"><p class="muted">Loading users…</p></div>', 'users');
-            const { data, error } = await sb.from('dq_users').select('*').order('username', { ascending: true });
+            const { data, error } = await sb.from('dq_users').select('*').order('created_at', { ascending: false });
             if (error) { appShell(`<div class="card"><div class="banner error">${esc(error.message)}</div></div>`,
                 'users'); return; }
 
@@ -2359,7 +2391,18 @@
                 <span class="pill">📊 Commercial &middot; ${streamCounts.commercial}</span>
                 <span class="pill">🎨 Art &middot; ${streamCounts.art}</span>
               </div>
-              <div style="overflow:auto;margin-top:16px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+              <div class="card" style="margin-top:14px;padding:12px 14px;background:var(--surface-2);">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <strong>Sort users:</strong>
+                  <select id="userSort" onchange="sortUsers(this.value)" style="min-width:180px;">
+                    <option value="newest">🆕 Newest → Oldest</option>
+                    <option value="oldest">📅 Oldest → Newest</option>
+                    <option value="az">🔤 Alphabetical A → Z</option>
+                    <option value="za">🔤 Alphabetical Z → A</option>
+                  </select>
+                </div>
+              </div>
+              <div id="usersTableArea" style="overflow:auto;margin-top:16px;border-radius:var(--radius-sm);border:1px solid var(--border);">
                 <table>
                   <thead><tr><th>#</th><th>Username</th><th>Stream</th><th>Security question</th><th>Joined</th></tr></thead>
                   <tbody>
@@ -2378,6 +2421,33 @@
             </div>
           `;
             appShell(body, 'users');
+            window._usersData = data || [];
+            sortUsers('newest');
+        }
+
+        function sortUsers(mode) {
+            const area = $('usersTableArea');
+            if (!area) return;
+            let arr = [...(window._usersData || [])];
+            if (mode === 'az') arr.sort((a,b) => String(a.username || '').localeCompare(String(b.username || ''), undefined, { sensitivity: 'base' }));
+            else if (mode === 'za') arr.sort((a,b) => String(b.username || '').localeCompare(String(a.username || ''), undefined, { sensitivity: 'base' }));
+            else if (mode === 'oldest') arr.sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+            else arr.sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            area.innerHTML = `
+              <table>
+                <thead><tr><th>#</th><th>Username</th><th>Stream</th><th>Security question</th><th>Joined</th></tr></thead>
+                <tbody>
+                ${arr.map((u,i) => `
+                  <tr>
+                    <td>${i+1}</td>
+                    <td><strong>${esc(u.username)}</strong></td>
+                    <td><span class="pill" style="font-size:11px;padding:2px 10px;">${esc(subjectLabel(u.stream))}</span></td>
+                    <td>${esc(u.security_question || '—')}</td>
+                    <td class="muted" style="font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                  </tr>
+                `).join('') || `<tr><td colspan="5" class="muted">No users yet.</td></tr>`}
+                </tbody>
+              </table>`;
         }
 
         /* ============================================================
