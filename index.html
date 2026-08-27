@@ -1366,15 +1366,14 @@
 
             // If already attempted
             if (attempt) {
-                if (st === 'reveal') return leaderboardPage();
                 const scorePrefKey = `dq_score_pref_${ses.id}_${quiz.id}`;
-                const showScore = localStorage.getItem(scorePrefKey) === 'show';
+                const showScore = st === 'reveal' ? true : localStorage.getItem(scorePrefKey) === 'show';
                 const maxScore = 100;
                 const scorePct = Math.round((Number(attempt.score || 0) / maxScore) * 100);
                 return appShell(`
               <div class="card center">
                 <div class="banner success" style="display:inline-block">✅ You have successfully completed this quiz.</div>
-                <p class="muted" style="margin-top:10px">The <b>leaderboard remains locked until exactly 6:30 PM</b>.</p>
+                <p class="muted" style="margin-top:10px">${st === 'reveal' ? 'The leaderboard is live — check the <b>Leaderboard</b> tab too.' : 'The <b>leaderboard remains locked until exactly 6:30 PM</b>.'}</p>
                 ${showScore ? `
                   <div class="card" style="margin-top:16px;background:var(--accent-light);border:1px solid var(--accent);">
                     <div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;">Your score</div>
@@ -1390,7 +1389,7 @@
                       </table>
                     </div>
                   </div>
-                  <button class="btn btn-secondary" style="margin-top:12px" onclick="setScorePreference('hide', ${quiz.id})">🔒 Hide my score until 6:30 PM</button>
+                  ${st === 'reveal' ? '' : `<button class="btn btn-secondary" style="margin-top:12px" onclick="setScorePreference('hide', ${quiz.id})">🔒 Hide my score until 6:30 PM</button>`}
                 ` : `
                   <div class="card" style="margin-top:16px;">
                     <div style="font-size:30px;margin-bottom:6px;">🔒</div>
