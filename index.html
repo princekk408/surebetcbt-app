@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Daily Quiz Challenge</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://ucerqmewibwkxdgtgqvc.supabase.co" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
         /* ===== PREMIUM THEME ===== */
         :root {
@@ -1090,15 +1088,9 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;font-family:system-ui,sans-serif;color:#7a6f7a;">
-            <div style="width:36px;height:36px;border-radius:50%;border:3px solid #e2dbd3;border-top-color:#d4a84b;animation:dqspin 0.8s linear infinite;"></div>
-            <div>Loading Daily Quiz Challenge…</div>
-        </div>
-    </div>
-    <style>@keyframes dqspin{to{transform:rotate(360deg)}}</style>
+    <div id="app"></div>
 
-    <script defer>
+    <script>
         'use strict';
 
         /* ============================================================
