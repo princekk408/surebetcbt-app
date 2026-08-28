@@ -2672,7 +2672,16 @@
            COUNTDOWN UPDATER
            ============================================================ */
         function startCountdownUpdater() {
-            // Update dashboard + leaderboard countdown displays every second
+            // Update dashboard + leaderboard countdown displays every second.
+            // IMPORTANT: once a countdown hits 0 it STAYS at 0 for the rest of
+            // the day, so the "refresh the page now" calls below must only
+            // fire ONCE per crossing — otherwise they'd re-fire every single
+            // second forever, each time re-fetching from Supabase and
+            // rebuilding the whole page (this was the cause of the app
+            // getting slower and slower the longer it stayed open).
+            let dashTriggered = false;
+            let lbTriggered = false;
+
             setInterval(() => {
                 const st = quizStatus();
 
@@ -2684,8 +2693,12 @@
                     else if (st === 'open') { sec = secondsUntilSix(); label = 'Time remaining to start'; }
                     if (sec !== null) {
                         dashEl.innerHTML = `<span class="label">${label}</span>${formatCountdown(sec)}`;
-                        if (sec <= 0) studentHome();
+                        if (sec <= 0 && !dashTriggered) { dashTriggered = true; studentHome(); }
                     }
+                } else {
+                    // Countdown element isn't on screen anymore (user navigated
+                    // away) — reset so it can fire again next time it's shown.
+                    dashTriggered = false;
                 }
 
                 // Leaderboard lock countdown — always counts down to 6:30 PM regardless of before/open/closed
@@ -2696,7 +2709,9 @@
                     target.setHours(18, 30, 0, 0);
                     const sec = Math.max(0, Math.floor((target - now) / 1000));
                     lbEl.innerHTML = `<span class="label">Time until reveal</span>${formatCountdown(sec)}`;
-                    if (sec <= 0) leaderboardPage();
+                    if (sec <= 0 && !lbTriggered) { lbTriggered = true; leaderboardPage(); }
+                } else {
+                    lbTriggered = false;
                 }
             }, 1000);
         }
