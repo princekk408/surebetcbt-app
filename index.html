@@ -5,9 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Daily Quiz Challenge</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://ucerqmewibwkxdgtgqvc.supabase.co">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <style>
+        #bootLoader {
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 14px;
+            background: #f2eee9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+            z-index: 9999;
+        }
+        #bootLoader .spinner {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 4px solid #e2dbd3; border-top-color: #1e1435;
+            animation: bootspin 0.8s linear infinite;
+        }
+        @keyframes bootspin { to { transform: rotate(360deg); } }
+        #bootLoader p { color: #7a6f7a; font-size: 14px; margin: 0; text-align: center; padding: 0 24px; }
+        #bootLoader.slow p { color: #b13a30; font-weight: 600; }
+        #bootLoader button {
+            display: none; padding: 10px 22px; border-radius: 999px; border: none;
+            background: #1e1435; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+        }
+        #bootLoader.slow button { display: inline-block; }
+    </style>
     <style>
         /* ===== PREMIUM THEME ===== */
         :root {
@@ -1090,6 +1112,29 @@
 <body>
     <div id="app"></div>
 
+    <div id="bootLoader">
+        <div class="spinner"></div>
+        <p id="bootLoaderMsg">Loading Daily Quiz Challenge…</p>
+        <button id="bootRetryBtn" onclick="location.reload()">Tap to retry</button>
+    </div>
+
+    <script>
+        // If loading takes too long (weak network / CDN not reachable),
+        // tell the user instead of leaving them staring at a spinner forever.
+        window.__bootSlowTimer = setTimeout(function () {
+            var bl = document.getElementById('bootLoader');
+            if (bl) {
+                bl.classList.add('slow');
+                document.getElementById('bootLoaderMsg').textContent =
+                    "This is taking longer than usual. Please check your internet connection.";
+            }
+        }, 8000);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onerror="document.getElementById('bootLoader').classList.add('slow'); document.getElementById('bootLoaderMsg').textContent='Could not load. Please check your internet connection and retry.';">
+    </script>
+
     <script>
         'use strict';
 
@@ -1099,7 +1144,18 @@
         const SUPABASE_URL = 'https://ucerqmewibwkxdgtgqvc.supabase.co';
         const SUPABASE_ANON_KEY =
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZXJxbWV3aWJ3a3hkZ3RncXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MzM1NDMsImV4cCI6MjA5NzEwOTU0M30.4wB1N229r__yCZo5unB1WVsnMf_Erk_p8aT1MySTgCU';
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let sb;
+        try {
+            sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            const bl = document.getElementById('bootLoader');
+            if (bl) {
+                bl.classList.add('slow');
+                document.getElementById('bootLoaderMsg').textContent =
+                    "App failed to start. Please check your internet connection and retry.";
+            }
+            throw e;
+        }
 
         /* ============================================================
            HELPERS
@@ -2719,14 +2775,30 @@
         /* ============================================================
            BOOT
            ============================================================ */
-        applyStoredTheme();
-        const session = loadSession();
-        if (session?.admin) adminHome();
-        else if (session?.id) studentHome();
-        else loginScreen();
+        try {
+            applyStoredTheme();
+            const session = loadSession();
+            if (session?.admin) adminHome();
+            else if (session?.id) studentHome();
+            else loginScreen();
 
-        // Start countdown updater
-        startCountdownUpdater();
+            // Start countdown updater
+            startCountdownUpdater();
+
+            // App booted successfully — remove the loading screen.
+            clearTimeout(window.__bootSlowTimer);
+            const bl = document.getElementById('bootLoader');
+            if (bl) bl.remove();
+        } catch (e) {
+            clearTimeout(window.__bootSlowTimer);
+            const bl = document.getElementById('bootLoader');
+            if (bl) {
+                bl.classList.add('slow');
+                document.getElementById('bootLoaderMsg').textContent =
+                    "Something went wrong while starting the app. Please retry.";
+            }
+            console.error('Boot error:', e);
+        }
     </script>
 </body>
 </html>
